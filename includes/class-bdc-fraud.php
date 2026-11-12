@@ -1,0 +1,207 @@
+<?php
+defined( 'ABSPATH' ) || exit;
+
+/**
+ * Customer delivery record ("fraud score").
+ *
+ * For a phone number, asks each connected courier how many parcels this
+ * customer received and refused, and adds the customer's history in this
+ * shop. Each source is kept and shown separately under its own name.
+ * Results are remembered for a day, because couriers limit these lookups.
+ */
+class BDC_Fraud {
+
+	const CACHE_HOURS = 24;
+
+	private static function cache_key( $phone ) {
+		return 'bdc_score_' . $phone;
+	}
+
+	/** The phone number an order's customer is known by. */
+	public static function order_phone( WC_Order $order ) {
+		$phone = '' !== (string) $order->get_billing_phone() ? $order->get_billing_phone() : $order->get_shipping_phone();
+		return BDC_Courier::clean_phone( $phone );
+	}
+
+	/**
+	 * A saved record, if there is a fresh one. Never contacts a courier.
+	 *
+	 * @return array|null
+	 */
+	public static function cached( $phone ) {
+		$record = get_transient( self::cache_key( $phone ) );
+		return is_array( $record ) ? $record : null;
+	}
+
+	/**
+	 * The record for a phone number, looked up now unless a fresh one is saved.
+	 *
+	 * @return array|WP_Error
+	 */
+	public static function get( $phone, $force = false ) {
+		$phone = BDC_Courier::clean_phone( $phone );
+
+		if ( ! BDC_Courier::is_valid_phone( $phone ) ) {
+			return new WP_Error( 'bdc_phone', __( 'This order has no valid mobile number to check.', 'bd-courier' ) );
+		}
+
+		if ( ! $force ) {
+			$record = self::cached( $phone );
+			if ( $record ) {
+				return $record;
+			}
+		}
+
+		$record = array(
+			'phone'      => $phone,
+			'checked_at' => time(),
+			'couriers'   => array(),
+			'shop'       => self::shop_history( $phone ),
+		);
+
+		foreach ( BDC_Couriers::all() as $courier ) {
+			if ( ! $courier->is_connected() ) {
+				continue;
+			}
+
+			$result = $courier->customer_record( $phone );
+			if ( null === $result ) {
+				continue;
+			}
+
+			$record['couriers'][ $courier->id() ] = is_wp_error( $result )
+				? array( 'error' => $result->get_error_message() )
+				: $result;
+		}
+
+		$record = array_merge( $record, self::summary( $record ) );
+		set_transient( self::cache_key( $phone ), $record, self::CACHE_HOURS * HOUR_IN_SECONDS );
+
+		return $record;
+	}
+
+	/**
+	 * This customer's past orders in this shop.
+	 *
+	 * @return array total, delivered, cancelled
+	 */
+	public static function shop_history( $phone ) {
+		$ids = array();
+
+		foreach ( array_unique( array( $phone, '+88' . $phone, '88' . $phone, substr( $phone, 1 ) ) ) as $variant ) {
+			$found = wc_get_orders(
+				array(
+					'billing_phone' => $variant,
+					'limit'         => 100,
+					'return'        => 'ids',
+					'type'          => 'shop_order',
+					'status'        => array_keys( wc_get_order_statuses() ),
+				)
+			);
+			$ids   = array_merge( $ids, (array) $found );
+		}
+
+		$history = array(
+			'total'     => 0,
+			'delivered' => 0,
+			'cancelled' => 0,
+		);
+
+		foreach ( array_unique( $ids ) as $id ) {
+			$order = wc_get_order( $id );
+			if ( ! $order instanceof WC_Order ) {
+				continue;
+			}
+
+			++$history['total'];
+			if ( $order->has_status( array( 'completed', BDC_Statuses::slug( 'delivered' ), BDC_Statuses::slug( 'partial' ) ) ) ) {
+				++$history['delivered'];
+			} elseif ( $order->has_status( array( 'cancelled', 'refunded', 'failed', BDC_Statuses::slug( 'returned' ), BDC_Statuses::slug( 'cancelled' ) ) ) ) {
+				++$history['cancelled'];
+			}
+		}
+
+		return $history;
+	}
+
+	/**
+	 * One overall reading from the couriers' numbers.
+	 *
+	 * @return array level (good|caution|risk|new|unknown), percent (int|null), parcels (int)
+	 */
+	private static function summary( array $record ) {
+		$total     = 0;
+		$delivered = 0;
+		$ratios    = array();
+
+		foreach ( $record['couriers'] as $data ) {
+			if ( isset( $data['error'] ) ) {
+				continue;
+			}
+			if ( null !== $data['total'] && null !== $data['delivered'] ) {
+				$total     += (int) $data['total'];
+				$delivered += (int) $data['delivered'];
+			} elseif ( null !== $data['ratio'] ) {
+				$ratios[] = (float) $data['ratio'];
+			}
+		}
+
+		$percent = null;
+		if ( $total > 0 ) {
+			$percent = (int) round( $delivered / $total * 100 );
+		} elseif ( $ratios ) {
+			$percent = (int) round( array_sum( $ratios ) / count( $ratios ) );
+		}
+
+		$has_answer = false;
+		foreach ( $record['couriers'] as $data ) {
+			$has_answer = $has_answer || ! isset( $data['error'] );
+		}
+
+		if ( ! $has_answer ) {
+			$level = 'unknown';
+		} elseif ( null === $percent || ( $total > 0 && $total < 3 ) ) {
+			$level = 'new';
+		} elseif ( $percent >= 80 ) {
+			$level = 'good';
+		} elseif ( $percent >= 50 ) {
+			$level = 'caution';
+		} else {
+			$level = 'risk';
+		}
+
+		return array(
+			'level'   => $level,
+			'percent' => $percent,
+			'parcels' => $total,
+		);
+	}
+
+	/** The shortest wording, for the narrow Orders column. The coloured dot beside it carries the level. */
+	public static function short_label( array $record ) {
+		if ( in_array( $record['level'], array( 'good', 'caution', 'risk' ), true ) ) {
+			/* translators: %d: percentage */
+			return sprintf( __( '%d%% delivered', 'bd-courier' ), $record['percent'] );
+		}
+		return 'new' === $record['level'] ? __( 'New customer', 'bd-courier' ) : __( 'No record', 'bd-courier' );
+	}
+
+	/** Short wording for a level, e.g. on the order list. */
+	public static function level_label( array $record ) {
+		switch ( $record['level'] ) {
+			case 'good':
+				/* translators: %d: percentage */
+				return sprintf( __( 'Good record · %d%% delivered', 'bd-courier' ), $record['percent'] );
+			case 'caution':
+				/* translators: %d: percentage */
+				return sprintf( __( 'Be careful · %d%% delivered', 'bd-courier' ), $record['percent'] );
+			case 'risk':
+				/* translators: %d: percentage */
+				return sprintf( __( 'High risk · %d%% delivered', 'bd-courier' ), $record['percent'] );
+			case 'new':
+				return __( 'New customer · little history', 'bd-courier' );
+			default:
+				return __( 'No courier record available', 'bd-courier' );
+		}
+	}
+}

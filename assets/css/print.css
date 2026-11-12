@@ -1,0 +1,825 @@
+/*
+ * BD Courier – invoice and parcel label.
+ *
+ * The invoice uses the accent colour from Settings → Branding for its
+ * highlights; text stays dark so it still reads on a black-and-white printer.
+ * The label is plain black on white for thermal printers.
+ */
+
+:root {
+	--bdc-accent: #2563eb;
+	--bdc-accent-dark: #1d4fc4;
+	--bdc-accent-soft: #e9effd;
+	--ink: #111827;
+	--text: #374151;
+	--muted: #6b7280;
+	--line: #e5e7eb;
+	--soft: #f8fafc;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+
+body.bdc-print {
+	background: #eef0f3;
+	color: var(--text);
+	font: 13px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans Bengali", "Helvetica Neue", Arial, sans-serif;
+	-webkit-print-color-adjust: exact;
+	print-color-adjust: exact;
+}
+
+h1,
+h2,
+p,
+dl,
+dd {
+	margin: 0;
+}
+
+/* ---- Top bar (screen only) ---- */
+
+.bdc-print__bar {
+	position: sticky;
+	top: 0;
+	z-index: 10;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 10px 12px;
+	padding: 10px 20px;
+	border-bottom: 1px solid var(--line);
+	background: rgba(255, 255, 255, 0.92);
+	backdrop-filter: blur(8px);
+	color: var(--ink);
+}
+
+.bdc-print__bar > strong {
+	margin-right: auto;
+	font-size: 14px;
+}
+
+/* Invoice / Parcel label: one control with two halves */
+.bdc-print__switch {
+	display: inline-flex;
+	padding: 3px;
+	border-radius: 10px;
+	background: #eef0f3;
+}
+
+.bdc-print__switch button {
+	display: inline-flex;
+	align-items: baseline;
+	gap: 6px;
+	padding: 7px 14px;
+	border: 0;
+	border-radius: 8px;
+	background: transparent;
+	color: var(--text);
+	font: inherit;
+	font-weight: 500;
+	cursor: pointer;
+}
+
+.bdc-print__switch button small {
+	color: var(--muted);
+	font-size: 11px;
+}
+
+.bdc-print__switch button[aria-pressed="true"] {
+	background: #fff;
+	box-shadow: 0 1px 3px rgba(17, 24, 39, 0.15);
+	color: var(--ink);
+	font-weight: 600;
+}
+
+.bdc-print__go {
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+	padding: 9px 18px;
+	border: 0;
+	border-radius: 10px;
+	background: var(--bdc-accent);
+	box-shadow: 0 1px 2px rgba(17, 24, 39, 0.2);
+	color: #fff;
+	font: inherit;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.bdc-print__go:hover,
+.bdc-print__go:focus {
+	background: var(--bdc-accent-dark);
+}
+
+.bdc-print__bar button:focus-visible {
+	outline: 2px solid var(--bdc-accent);
+	outline-offset: 2px;
+}
+
+/* ---- Which document is shown ---- */
+
+.bdc-doc {
+	margin: 20px auto;
+	background: #fff;
+	box-shadow: 0 4px 18px rgba(17, 24, 39, 0.12);
+}
+
+.bdc-print--invoice .bdc-label,
+.bdc-print--label .bdc-invoice {
+	display: none;
+}
+
+.bdc-num {
+	text-align: right !important;
+	white-space: nowrap;
+	font-variant-numeric: tabular-nums;
+}
+
+/* ---- Courier block (shared) ---- */
+
+.bdc-doc__courier {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 4px 10px;
+}
+
+.bdc-doc__courier-name {
+	padding: 1px 9px;
+	border: 1.5px solid var(--ink);
+	border-radius: 4px;
+	color: var(--ink);
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+
+.bdc-doc__consignment {
+	color: var(--ink);
+	font: 700 15px/1.3 ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
+	word-break: break-all;
+}
+
+.bdc-doc__tracking {
+	flex-basis: 100%;
+	font-size: 12px;
+	color: var(--muted);
+}
+
+.bdc-doc__courier--none {
+	color: var(--muted);
+	font-style: italic;
+}
+
+/* =========================================================
+   Invoice (A4)
+   ========================================================= */
+
+.bdc-invoice {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	width: 210mm;
+	max-width: calc(100% - 24px);
+	min-height: 297mm;
+	padding: 16mm 15mm 12mm;
+	border-top: 6px solid var(--bdc-accent);
+	border-radius: 4px;
+}
+
+.bdc-invoice__head {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 24px;
+}
+
+.bdc-invoice__shop {
+	display: flex;
+	align-items: flex-start;
+	gap: 14px;
+	min-width: 0;
+}
+
+.bdc-invoice__shop img {
+	max-width: 120px;
+	max-height: 64px;
+	border-radius: 6px;
+}
+
+.bdc-invoice__shop strong {
+	display: block;
+	margin-bottom: 2px;
+	color: var(--ink);
+	font-size: 19px;
+	line-height: 1.3;
+}
+
+.bdc-invoice__shop span {
+	display: block;
+	color: var(--muted);
+	font-size: 12.5px;
+}
+
+.bdc-invoice__title {
+	text-align: right;
+	white-space: nowrap;
+}
+
+.bdc-invoice__title h1 {
+	color: var(--bdc-accent);
+	font-size: 30px;
+	font-weight: 800;
+	letter-spacing: 0.1em;
+	line-height: 1.1;
+	text-transform: uppercase;
+}
+
+.bdc-invoice__title span {
+	display: block;
+	margin-top: 4px;
+	color: var(--ink);
+	font-size: 15px;
+	font-weight: 600;
+}
+
+/* Details strip */
+.bdc-invoice__meta {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	margin: 22px 0 18px;
+	border: 1px solid var(--line);
+	border-radius: 8px;
+	background: var(--soft);
+}
+
+.bdc-invoice__meta > div {
+	padding: 10px 14px;
+	min-width: 0;
+}
+
+.bdc-invoice__meta > div + div {
+	border-left: 1px solid var(--line);
+}
+
+.bdc-invoice__meta dt,
+.bdc-invoice h2 {
+	margin-bottom: 3px;
+	color: var(--muted);
+	font-size: 10px;
+	font-weight: 600;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.bdc-invoice__meta dd {
+	color: var(--ink);
+	font-weight: 600;
+	overflow-wrap: anywhere;
+}
+
+.bdc-invoice__paid {
+	display: inline-block;
+	padding: 1px 9px;
+	border-radius: 999px;
+	background: #fdf3d7;
+	color: #854d0e;
+	font-size: 12px;
+}
+
+.bdc-invoice__paid.is-paid {
+	background: #e7f6ec;
+	color: #166534;
+}
+
+/* Deliver to + Courier */
+.bdc-invoice__parties {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 14px;
+	margin-bottom: 20px;
+}
+
+.bdc-invoice__card {
+	padding: 12px 14px;
+	border: 1px solid var(--line);
+	border-radius: 8px;
+}
+
+.bdc-invoice__card strong {
+	display: block;
+	color: var(--ink);
+	font-size: 15px;
+}
+
+.bdc-invoice__card > span {
+	display: block;
+	overflow-wrap: anywhere;
+}
+
+/* Items */
+.bdc-invoice__items {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.bdc-invoice__items th {
+	padding: 9px 10px;
+	background: var(--bdc-accent-soft);
+	color: var(--ink);
+	font-size: 10.5px;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-align: left;
+	text-transform: uppercase;
+}
+
+.bdc-invoice__items th:first-child {
+	border-radius: 6px 0 0 6px;
+}
+
+.bdc-invoice__items th:last-child {
+	border-radius: 0 6px 6px 0;
+}
+
+.bdc-invoice__items td {
+	padding: 10px;
+	border-bottom: 1px solid var(--line);
+	color: var(--ink);
+	vertical-align: top;
+}
+
+.bdc-invoice__items tbody tr {
+	break-inside: avoid;
+}
+
+.bdc-invoice__no {
+	width: 34px;
+	color: var(--muted) !important;
+}
+
+.bdc-invoice__items small {
+	display: block;
+	margin-top: 1px;
+	color: var(--muted);
+	font-size: 11px;
+}
+
+/* Note + totals */
+.bdc-invoice__bottom {
+	display: flex;
+	justify-content: space-between;
+	gap: 28px;
+	padding-top: 18px;
+	break-inside: avoid;
+}
+
+.bdc-invoice__note {
+	flex: 1;
+	min-width: 0;
+}
+
+.bdc-invoice__note p {
+	padding: 10px 12px;
+	border-left: 3px solid var(--bdc-accent);
+	border-radius: 0 6px 6px 0;
+	background: var(--soft);
+	color: var(--ink);
+}
+
+.bdc-invoice__totals {
+	flex: 0 0 290px;
+	border-collapse: separate;
+	border-spacing: 0;
+}
+
+.bdc-invoice__totals th {
+	padding: 5px 10px;
+	color: var(--text);
+	font-weight: 400;
+	text-align: left;
+}
+
+.bdc-invoice__totals td {
+	padding: 5px 10px;
+	color: var(--ink);
+	text-align: right;
+	white-space: nowrap;
+	font-variant-numeric: tabular-nums;
+}
+
+.bdc-invoice__total th,
+.bdc-invoice__total td {
+	padding-top: 9px;
+	border-top: 1.5px solid var(--ink);
+	color: var(--ink);
+	font-weight: 700;
+}
+
+.bdc-invoice__total th,
+.bdc-invoice__total td {
+	padding-bottom: 10px;
+}
+
+.bdc-invoice__cod th,
+.bdc-invoice__cod td {
+	padding: 11px 12px;
+	border-top: 2px solid var(--bdc-accent);
+	border-bottom: 2px solid var(--bdc-accent);
+	background: var(--bdc-accent-soft);
+	color: var(--ink);
+	font-size: 16px;
+	font-weight: 800;
+}
+
+.bdc-invoice__cod th {
+	border-left: 2px solid var(--bdc-accent);
+	border-radius: 8px 0 0 8px;
+}
+
+.bdc-invoice__cod td {
+	border-right: 2px solid var(--bdc-accent);
+	border-radius: 0 8px 8px 0;
+}
+
+.bdc-invoice__foot {
+	margin-top: auto;
+	padding-top: 18px;
+	color: var(--muted);
+	font-size: 12px;
+	text-align: center;
+}
+
+.bdc-invoice__foot p + p {
+	margin-top: 3px;
+}
+
+.bdc-invoice__foot::before {
+	content: "";
+	display: block;
+	width: 48px;
+	height: 3px;
+	margin: 0 auto 12px;
+	border-radius: 3px;
+	background: var(--bdc-accent);
+}
+
+.bdc-invoice__thanks {
+	color: var(--ink);
+	font-weight: 600;
+}
+
+/* =========================================================
+   Label (100 × 150 mm). Black on white: made for thermal printers.
+   ========================================================= */
+
+.bdc-label {
+	display: flex;
+	flex-direction: column;
+	width: 100mm;
+	max-width: calc(100% - 24px);
+	height: 150mm;
+	padding: 4mm;
+	border-radius: 4px;
+	color: #000;
+	font-size: 12px;
+	line-height: 1.35;
+	overflow: hidden;
+}
+
+.bdc-label small,
+.bdc-label dt {
+	display: block;
+	color: #000;
+	font-size: 8.5px;
+	font-weight: 700;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+}
+
+/* From / Order */
+.bdc-label__head {
+	display: flex;
+	justify-content: space-between;
+	gap: 8px;
+	padding-bottom: 2.5mm;
+}
+
+.bdc-label__head strong,
+.bdc-label__head span {
+	display: block;
+}
+
+.bdc-label__from strong {
+	font-size: 14px;
+	line-height: 1.25;
+}
+
+.bdc-label__order {
+	text-align: right;
+	white-space: nowrap;
+}
+
+.bdc-label__order strong {
+	font-size: 20px;
+	font-weight: 800;
+	line-height: 1.1;
+}
+
+.bdc-label__order span,
+.bdc-label__from span {
+	font-size: 11px;
+}
+
+/* Courier bar: white on solid black */
+.bdc-label__courier {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	padding: 2.2mm 3mm;
+	border-radius: 1.5mm;
+	background: #000;
+	color: #fff;
+}
+
+.bdc-label__courier-name {
+	font-size: 15px;
+	font-weight: 800;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.bdc-label__courier.is-empty {
+	border: 1.5px dashed #000;
+	background: #fff;
+	color: #000;
+}
+
+.bdc-label__courier.is-empty .bdc-label__courier-name {
+	font-size: 11px;
+	letter-spacing: 0.04em;
+}
+
+.bdc-label__consignment {
+	font: 800 17px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
+	letter-spacing: 0.02em;
+	text-align: right;
+	word-break: break-all;
+}
+
+.bdc-label__tracking {
+	margin-top: 1mm;
+	font-size: 10.5px;
+	text-align: right;
+}
+
+/* Deliver to: the largest text on the label */
+.bdc-label__to {
+	margin-top: 3mm;
+	padding: 2.5mm 0 3mm 3mm;
+	border-left: 1.2mm solid #000;
+}
+
+.bdc-label__to strong {
+	display: block;
+	margin-top: 0.5mm;
+	font-size: 20px;
+	font-weight: 800;
+	line-height: 1.2;
+}
+
+.bdc-label__phone {
+	display: block;
+	margin-top: 0.5mm;
+	font: 800 19px/1.25 ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
+	letter-spacing: 0.02em;
+}
+
+.bdc-label__address {
+	display: block;
+	margin-top: 1mm;
+	font-size: 14px;
+	line-height: 1.35;
+}
+
+/* Cash to collect */
+.bdc-label__cod {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	margin-top: 3mm;
+	padding: 2.5mm 3mm;
+	border: 0.8mm solid #000;
+	border-radius: 2mm;
+}
+
+.bdc-label__cod > div span {
+	display: block;
+	margin-top: 0.5mm;
+	font-size: 10px;
+}
+
+.bdc-label__cod strong {
+	font-size: 28px;
+	font-weight: 800;
+	line-height: 1;
+	white-space: nowrap;
+}
+
+.bdc-label__cod.is-paid strong {
+	padding: 1mm 3mm;
+	border-radius: 1.5mm;
+	background: #000;
+	color: #fff;
+	font-size: 20px;
+	letter-spacing: 0.1em;
+}
+
+/* Three small facts in a row */
+.bdc-label__facts {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	margin-top: 3mm;
+	border: 0.3mm solid #000;
+	border-radius: 1.5mm;
+}
+
+.bdc-label__facts > div {
+	padding: 1.5mm 2.5mm;
+}
+
+.bdc-label__facts > div + div {
+	border-left: 0.3mm solid #000;
+}
+
+.bdc-label__facts dd {
+	font-size: 13px;
+	font-weight: 700;
+}
+
+.bdc-label__items {
+	margin-top: 2mm;
+	font-size: 11px;
+	line-height: 1.35;
+	max-height: 9mm;
+	overflow: hidden;
+}
+
+.bdc-label__note {
+	margin-top: 2mm;
+	padding: 1.5mm 2.5mm;
+	border: 0.3mm dashed #000;
+	border-radius: 1.5mm;
+}
+
+.bdc-label__note span {
+	display: block;
+	font-size: 12px;
+	font-weight: 600;
+	line-height: 1.3;
+	max-height: 10mm;
+	overflow: hidden;
+}
+
+.bdc-label__foot {
+	margin-top: auto;
+	padding-top: 2mm;
+	border-top: 0.3mm solid #000;
+	font-size: 9.5px;
+	font-weight: 600;
+	letter-spacing: 0.06em;
+	text-align: center;
+	text-transform: uppercase;
+}
+
+/* =========================================================
+   Small screens (viewing on a phone before printing)
+   ========================================================= */
+
+@media screen and (max-width: 720px) {
+	.bdc-print__bar > strong {
+		flex-basis: 100%;
+	}
+
+	.bdc-print__switch {
+		flex: 1;
+	}
+
+	.bdc-print__switch button {
+		flex: 1;
+		justify-content: center;
+		padding: 8px 6px;
+	}
+
+	.bdc-print__switch button small {
+		display: none;
+	}
+
+	.bdc-doc {
+		margin: 12px auto;
+	}
+
+	.bdc-invoice {
+		min-height: 0;
+		padding: 20px 16px 18px;
+	}
+
+	.bdc-invoice__head {
+		flex-direction: column;
+		gap: 12px;
+	}
+
+	.bdc-invoice__title {
+		text-align: left;
+	}
+
+	.bdc-invoice__title h1 {
+		font-size: 24px;
+	}
+
+	.bdc-invoice__meta {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.bdc-invoice__meta > div:nth-child(3) {
+		border-left: 0;
+	}
+
+	.bdc-invoice__meta > div:nth-child(n + 3) {
+		border-top: 1px solid var(--line);
+	}
+
+	.bdc-invoice__parties {
+		grid-template-columns: 1fr;
+	}
+
+	/* Fewer columns so the items never need sideways scrolling. */
+	.bdc-invoice__no,
+	.bdc-invoice__price {
+		display: none;
+	}
+
+	.bdc-invoice__items th:nth-child(2) {
+		border-radius: 6px 0 0 6px;
+	}
+
+	.bdc-invoice__bottom {
+		flex-direction: column;
+		gap: 16px;
+	}
+
+	.bdc-invoice__totals {
+		flex: none;
+		width: 100%;
+	}
+
+	.bdc-label {
+		height: auto;
+		min-height: 150mm;
+	}
+}
+
+/* =========================================================
+   Paper
+   ========================================================= */
+
+@media print {
+	body.bdc-print {
+		background: #fff;
+	}
+
+	.bdc-print__bar {
+		display: none;
+	}
+
+	.bdc-doc {
+		margin: 0;
+		max-width: none;
+		border-radius: 0;
+		box-shadow: none;
+		break-after: page;
+		page-break-after: always;
+	}
+
+	.bdc-doc:last-of-type {
+		break-after: auto;
+		page-break-after: auto;
+	}
+
+	/* The page margin gives the invoice its edge on paper. */
+	.bdc-invoice {
+		width: auto;
+		min-height: 262mm;
+		padding: 6mm 0 0;
+	}
+}
