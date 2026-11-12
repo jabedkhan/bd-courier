@@ -3,8 +3,7 @@
  * Plugin Name: BD Courier
  * Description: Send WooCommerce orders to Pathao and Steadfast from one place, and follow every parcel from your dashboard.
  * Version: 0.13.0
- * Author: jabedkhan
- * Author URI: https://github.com/jabedkhan
+ * Author: BD Courier
  * Plugin URI: https://github.com/jabedkhan/bd-courier
  * Text Domain: bd-courier
  * Requires at least: 6.4
@@ -12,18 +11,6 @@
  * Requires Plugins: woocommerce
  * License: GPLv2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
- *
- * Copyright (C) 2026 jabedkhan
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
  */
 
 defined( 'ABSPATH' ) || exit;

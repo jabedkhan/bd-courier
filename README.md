@@ -308,8 +308,4 @@ In your browser's print dialog, choose the matching paper size (A4 for invoices,
 
 ## License
 
-Copyright © 2026 [jabedkhan](https://github.com/jabedkhan). All of the code in this repository was written for and is owned by jabedkhan.
-
-BD Courier is released under the **GNU General Public License, version 2 or later** — the same license as WordPress and WooCommerce. You may use, study, change and share it, as long as any version you share is also released under the GPL and keeps this copyright notice. See [LICENSE](LICENSE) for the full text.
-
-The software comes with no warranty.
+GPLv2 or later, the same license as WordPress and WooCommerce. See [LICENSE](LICENSE).
