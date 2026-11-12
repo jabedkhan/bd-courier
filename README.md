@@ -19,7 +19,6 @@ Pathao and Steadfast stay completely separate: their own credentials, settings, 
 - [Moving from the official Pathao or Steadfast plugin](#moving-from-the-official-pathao-or-steadfast-plugin)
 - [Good to know](#good-to-know)
 - [Troubleshooting](#troubleshooting)
-- [License](#license)
 
 ---
 
@@ -303,9 +302,3 @@ An order can only have one parcel. Open it in the courier's merchant panel to ma
 
 **Printing looks wrong**
 In your browser's print dialog, choose the matching paper size (A4 for invoices, 100 × 150 mm for labels), set margins to *Default* or *None*, and turn on *Background graphics*.
-
----
-
-## License
-
-GPLv2 or later, the same license as WordPress and WooCommerce. See [LICENSE](LICENSE).
