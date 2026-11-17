@@ -4092,3 +4092,32 @@ td.column-bdc_courier .bdc-consignment {
 .bdc-reports .description {
 	max-width: none;
 }
+
+/* Side by side: measure names first, everything aligned to the left. */
+.bdc-versus th,
+.bdc-versus td,
+.bdc-versus .bdc-versus__side--left,
+.bdc-versus .bdc-versus__side--right,
+.bdc-versus .bdc-versus__metric,
+.bdc-versus .bdc-versus__total {
+	text-align: left !important;
+}
+
+.bdc-versus .bdc-versus__metric {
+	width: 28%;
+	color: var(--bdc-text) !important;
+	font-size: 13px;
+}
+
+.bdc-versus .bdc-versus__side {
+	width: 26%;
+}
+
+.bdc-versus .bdc-versus__total {
+	width: 20%;
+}
+
+.bdc-versus td.bdc-versus__side--left.is-ahead,
+.bdc-versus td.bdc-versus__side--right.is-ahead {
+	background: linear-gradient(to right, var(--bdc-good-bg), transparent 70%);
+}

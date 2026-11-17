@@ -339,8 +339,8 @@ class BDC_Reports {
 					<table class="bdc-reports__table bdc-versus">
 						<thead>
 							<tr>
-								<th class="bdc-versus__side bdc-versus__side--left"><?php echo $left ? BDC_View::badge( $left ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput ?></th>
 								<th class="bdc-versus__metric"><?php esc_html_e( 'Compared', 'bd-courier' ); ?></th>
+								<th class="bdc-versus__side bdc-versus__side--left"><?php echo $left ? BDC_View::badge( $left ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput ?></th>
 								<th class="bdc-versus__side bdc-versus__side--right"><?php echo $right ? BDC_View::badge( $right ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput ?></th>
 								<th class="bdc-versus__total"><?php esc_html_e( 'Total', 'bd-courier' ); ?></th>
 							</tr>
@@ -364,8 +364,8 @@ class BDC_Reports {
 								}
 								?>
 								<tr class="<?php echo in_array( $key, array( 'rate', 'cod_all' ), true ) ? 'bdc-reports__divider' : ''; ?>">
-									<td class="bdc-versus__side bdc-versus__side--left <?php echo 'left' === $lead ? 'is-ahead' : ''; ?>"><?php echo esc_html( $l ? $cell( $l, $key, $line[1] ) : '—' ); ?></td>
 									<th scope="row" class="bdc-versus__metric"><?php echo esc_html( $line[0] ); ?></th>
+									<td class="bdc-versus__side bdc-versus__side--left <?php echo 'left' === $lead ? 'is-ahead' : ''; ?>"><?php echo esc_html( $l ? $cell( $l, $key, $line[1] ) : '—' ); ?></td>
 									<td class="bdc-versus__side bdc-versus__side--right <?php echo 'right' === $lead ? 'is-ahead' : ''; ?>"><?php echo esc_html( $r ? $cell( $r, $key, $line[1] ) : '—' ); ?></td>
 									<td class="bdc-versus__total"><?php echo esc_html( $cell( $total, $key, $line[1] ) ); ?></td>
 								</tr>
