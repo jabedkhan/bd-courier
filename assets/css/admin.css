@@ -3642,7 +3642,7 @@ td.column-bdc_courier .bdc-consignment {
 @media (min-width: 783px) {
 	.post-type-shop_order.edit-php .wp-list-table,
 	.woocommerce_page_wc-orders .wp-list-table {
-		width: 100%;
+		width: 100% !important;
 		max-width: 100%;
 		table-layout: fixed;
 	}
@@ -3657,46 +3657,46 @@ td.column-bdc_courier .bdc-consignment {
 
 	.post-type-shop_order.edit-php .wp-list-table .check-column,
 	.woocommerce_page_wc-orders .wp-list-table .check-column {
-		width: 2.4em;
+		width: 2.4em !important;
 	}
 
 	.post-type-shop_order.edit-php .wp-list-table .column-order_number,
 	.woocommerce_page_wc-orders .wp-list-table .column-order_number {
-		width: 19%;
+		width: 19% !important;
 	}
 
 	.post-type-shop_order.edit-php .wp-list-table .column-order_date,
 	.woocommerce_page_wc-orders .wp-list-table .column-order_date {
-		width: 9%;
+		width: 9% !important;
 	}
 
 	.post-type-shop_order.edit-php .wp-list-table .column-order_status,
 	.woocommerce_page_wc-orders .wp-list-table .column-order_status {
-		width: 12%;
+		width: 12% !important;
 	}
 
 	.post-type-shop_order.edit-php .wp-list-table .column-bdc_courier,
 	.woocommerce_page_wc-orders .wp-list-table .column-bdc_courier {
-		width: 17%;
+		width: 17% !important;
 	}
 
 	.post-type-shop_order.edit-php .wp-list-table .column-billing_address,
 	.post-type-shop_order.edit-php .wp-list-table .column-shipping_address,
 	.woocommerce_page_wc-orders .wp-list-table .column-billing_address,
 	.woocommerce_page_wc-orders .wp-list-table .column-shipping_address {
-		width: 20%;
+		width: 20% !important;
 	}
 
 	.post-type-shop_order.edit-php .wp-list-table .column-order_total,
 	.woocommerce_page_wc-orders .wp-list-table .column-order_total {
-		width: 9%;
+		width: 9% !important;
 	}
 
 	.post-type-shop_order.edit-php .wp-list-table .column-wc_actions,
 	.woocommerce_page_wc-orders .wp-list-table .column-wc_actions,
 	.post-type-shop_order.edit-php .wp-list-table .column-origin,
 	.woocommerce_page_wc-orders .wp-list-table .column-origin {
-		width: 9%;
+		width: 9% !important;
 	}
 
 	/* Status tag and courier buttons stay on one line and shrink with their column. */
@@ -3911,5 +3911,32 @@ td.column-bdc_courier .bdc-consignment {
 		white-space: normal;
 		text-overflow: clip;
 		text-align: center;
+	}
+}
+
+/* Status names break between words only, never inside one. */
+@media (min-width: 783px) {
+	.wp-list-table td.column-order_status,
+	.wp-list-table td.column-order_status mark.order-status > span {
+		overflow-wrap: normal;
+		word-break: keep-all;
+	}
+
+	.wp-list-table td.column-order_status mark.order-status {
+		padding-right: 8px;
+		padding-left: 7px;
+		font-size: 10.5px;
+	}
+
+	.post-type-shop_order.edit-php .wp-list-table .column-order_status,
+	.woocommerce_page_wc-orders .wp-list-table .column-order_status {
+		width: 13% !important;
+	}
+
+	.post-type-shop_order.edit-php .wp-list-table .column-billing_address,
+	.post-type-shop_order.edit-php .wp-list-table .column-shipping_address,
+	.woocommerce_page_wc-orders .wp-list-table .column-billing_address,
+	.woocommerce_page_wc-orders .wp-list-table .column-shipping_address {
+		width: 19% !important;
 	}
 }
