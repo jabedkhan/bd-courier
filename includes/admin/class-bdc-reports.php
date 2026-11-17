@@ -308,50 +308,66 @@ class BDC_Reports {
 				</div>
 
 				<h2><?php esc_html_e( 'Side by side', 'bd-courier' ); ?></h2>
-				<div class="bdc-table-scroll">
-					<table class="bdc-reports__table">
+				<?php
+				$left  = isset( $couriers['steadfast'] ) ? $couriers['steadfast'] : null;
+				$right = isset( $couriers['pathao'] ) ? $couriers['pathao'] : null;
+				$cell  = function ( array $sum, $key, $type ) {
+					if ( 'rate' === $type ) {
+						$value = self::success_rate( $sum );
+						return null === $value ? '—' : $value . '%';
+					}
+					if ( 'money' === $type ) {
+						return BDC_View::money( $sum[ $key ] );
+					}
+					return number_format_i18n( $sum[ $key ] );
+				};
+				$lines = array(
+					'sent'          => array( __( 'Parcels sent', 'bd-courier' ), 'count' ),
+					'delivered'     => array( __( 'Delivered', 'bd-courier' ), 'count' ),
+					'partial'       => array( __( 'Partial delivery', 'bd-courier' ), 'count' ),
+					'returned'      => array( __( 'Returned or cancelled', 'bd-courier' ), 'count' ),
+					'hold'          => array( __( 'On hold at courier', 'bd-courier' ), 'count' ),
+					'on_the_way'    => array( __( 'On the way', 'bd-courier' ), 'count' ),
+					'rate'          => array( __( 'Delivery success', 'bd-courier' ), 'rate' ),
+					'cod_all'       => array( __( 'Cash to collect (all parcels)', 'bd-courier' ), 'money' ),
+					'cod_collected' => array( __( 'Cash collected (delivered)', 'bd-courier' ), 'money' ),
+					'cod_out'       => array( __( 'Cash still out', 'bd-courier' ), 'money' ),
+					'fees'          => array( __( 'Delivery fees', 'bd-courier' ), 'money' ),
+				);
+				?>
+				<div class="bdc-table-scroll bdc-versus-wrap">
+					<table class="bdc-reports__table bdc-versus">
 						<thead>
 							<tr>
-								<th></th>
-								<?php foreach ( $couriers as $courier ) : ?>
-									<th class="bdc-num"><?php echo BDC_View::badge( $courier ); // phpcs:ignore WordPress.Security.EscapeOutput ?></th>
-								<?php endforeach; ?>
-								<th class="bdc-num"><?php esc_html_e( 'Total', 'bd-courier' ); ?></th>
+								<th class="bdc-versus__side bdc-versus__side--left"><?php echo $left ? BDC_View::badge( $left ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput ?></th>
+								<th class="bdc-versus__metric"><?php esc_html_e( 'Compared', 'bd-courier' ); ?></th>
+								<th class="bdc-versus__side bdc-versus__side--right"><?php echo $right ? BDC_View::badge( $right ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput ?></th>
+								<th class="bdc-versus__total"><?php esc_html_e( 'Total', 'bd-courier' ); ?></th>
 							</tr>
 						</thead>
 						<tbody>
-							<?php
-							$lines = array(
-								'sent'          => array( __( 'Parcels sent', 'bd-courier' ), 'count' ),
-								'delivered'     => array( __( 'Delivered', 'bd-courier' ), 'count' ),
-								'partial'       => array( __( 'Partial delivery', 'bd-courier' ), 'count' ),
-								'returned'      => array( __( 'Returned or cancelled', 'bd-courier' ), 'count' ),
-								'hold'          => array( __( 'On hold at courier', 'bd-courier' ), 'count' ),
-								'on_the_way'    => array( __( 'On the way', 'bd-courier' ), 'count' ),
-								'rate'          => array( __( 'Delivery success', 'bd-courier' ), 'rate' ),
-								'cod_all'       => array( __( 'Cash to collect (all parcels)', 'bd-courier' ), 'money' ),
-								'cod_collected' => array( __( 'Cash collected (delivered)', 'bd-courier' ), 'money' ),
-								'cod_out'       => array( __( 'Cash still out', 'bd-courier' ), 'money' ),
-								'fees'          => array( __( 'Delivery fees', 'bd-courier' ), 'money' ),
-							);
-							foreach ( $lines as $key => $line ) :
+							<?php foreach ( $lines as $key => $line ) : ?>
+								<?php
+								$l = $left ? $report['couriers'][ $left->id() ] : null;
+								$r = $right ? $report['couriers'][ $right->id() ] : null;
+								$lv = $l ? $l[ $key ] ?? null : null;
+								$rv = $r ? $r[ $key ] ?? null : null;
+								// Highlight the courier that is ahead on this line (more is better, except money still out and fees).
+								$lower_better = in_array( $key, array( 'returned', 'hold', 'cod_out', 'fees' ), true );
+								if ( 'rate' === $line[1] && $l && $r ) {
+									$lv = self::success_rate( $l );
+									$rv = self::success_rate( $r );
+								}
+								$lead = '';
+								if ( null !== $lv && null !== $rv && $lv != $rv && in_array( $key, array( 'delivered', 'rate', 'cod_collected', 'returned', 'cod_out' ), true ) ) { // phpcs:ignore
+									$lead = ( $lv > $rv ) !== $lower_better ? 'left' : 'right';
+								}
 								?>
 								<tr class="<?php echo in_array( $key, array( 'rate', 'cod_all' ), true ) ? 'bdc-reports__divider' : ''; ?>">
-									<th scope="row"><?php echo esc_html( $line[0] ); ?></th>
-									<?php foreach ( array_merge( array_values( $report['couriers'] ), array( $total ) ) as $sum ) : ?>
-										<td class="bdc-num">
-											<?php
-											if ( 'rate' === $line[1] ) {
-												$value = self::success_rate( $sum );
-												echo esc_html( null === $value ? '—' : $value . '%' );
-											} elseif ( 'money' === $line[1] ) {
-												echo esc_html( BDC_View::money( $sum[ $key ] ) );
-											} else {
-												echo esc_html( number_format_i18n( $sum[ $key ] ) );
-											}
-											?>
-										</td>
-									<?php endforeach; ?>
+									<td class="bdc-versus__side bdc-versus__side--left <?php echo 'left' === $lead ? 'is-ahead' : ''; ?>"><?php echo esc_html( $l ? $cell( $l, $key, $line[1] ) : '—' ); ?></td>
+									<th scope="row" class="bdc-versus__metric"><?php echo esc_html( $line[0] ); ?></th>
+									<td class="bdc-versus__side bdc-versus__side--right <?php echo 'right' === $lead ? 'is-ahead' : ''; ?>"><?php echo esc_html( $r ? $cell( $r, $key, $line[1] ) : '—' ); ?></td>
+									<td class="bdc-versus__total"><?php echo esc_html( $cell( $total, $key, $line[1] ) ); ?></td>
 								</tr>
 							<?php endforeach; ?>
 						</tbody>

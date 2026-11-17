@@ -3987,3 +3987,108 @@ td.column-bdc_courier .bdc-consignment {
 		width: 100%;
 	}
 }
+
+/* ---- Reports: Steadfast and Pathao face each other, full width ---- */
+
+.bdc-reports .bdc-versus-wrap {
+	max-width: none;
+}
+
+.bdc-reports__table.bdc-versus {
+	width: 100%;
+	min-width: 520px;
+	table-layout: fixed;
+}
+
+.bdc-versus th,
+.bdc-versus td {
+	padding: 11px 18px;
+	font-variant-numeric: tabular-nums;
+}
+
+.bdc-versus .bdc-versus__side {
+	width: 30%;
+	font-size: 15px;
+	font-weight: 600;
+	color: var(--bdc-ink);
+}
+
+.bdc-versus .bdc-versus__side--left {
+	text-align: right;
+}
+
+.bdc-versus .bdc-versus__side--right {
+	text-align: left;
+}
+
+.bdc-versus thead .bdc-versus__side .bdc-badge {
+	padding: 3px 14px;
+	font-size: 13px;
+}
+
+.bdc-versus .bdc-versus__metric {
+	width: 26%;
+	background: var(--bdc-soft);
+	color: var(--bdc-muted) !important;
+	font-size: 12px;
+	font-weight: 500 !important;
+	text-align: center !important;
+}
+
+.bdc-versus thead .bdc-versus__metric {
+	font-size: 11px;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+.bdc-versus .bdc-versus__total {
+	width: 14%;
+	border-left: 1px solid var(--bdc-line);
+	color: var(--bdc-muted) !important;
+	font-weight: 600;
+	text-align: right !important;
+}
+
+.bdc-versus td.bdc-versus__side--left {
+	box-shadow: inset -3px 0 0 transparent;
+}
+
+.bdc-versus td.is-ahead {
+	color: var(--bdc-good);
+}
+
+.bdc-versus td.bdc-versus__side--left.is-ahead {
+	background: linear-gradient(to left, var(--bdc-good-bg), transparent 70%);
+}
+
+.bdc-versus td.bdc-versus__side--right.is-ahead {
+	background: linear-gradient(to right, var(--bdc-good-bg), transparent 70%);
+}
+
+.bdc-versus td.is-ahead::after {
+	content: " ▲";
+	font-size: 9px;
+	vertical-align: 2px;
+}
+
+@media (max-width: 782px) {
+	.bdc-versus th,
+	.bdc-versus td {
+		padding: 9px 10px;
+	}
+
+	.bdc-versus .bdc-versus__side {
+		font-size: 14px;
+	}
+}
+
+/* The whole Reports page uses the full width. */
+.bdc-page.bdc-reports {
+	max-width: none;
+}
+
+.bdc-reports .bdc-chart,
+.bdc-reports .bdc-reports__notes,
+.bdc-reports .description {
+	max-width: none;
+}
