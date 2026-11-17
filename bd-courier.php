@@ -2,7 +2,7 @@
 /**
  * Plugin Name: BD Courier
  * Description: Send WooCommerce orders to Pathao and Steadfast from one place, and follow every parcel from your dashboard.
- * Version: 0.13.0
+ * Version: 0.14.0
  * Author: BD Courier
  * Plugin URI: https://github.com/jabedkhan/bd-courier
  * Text Domain: bd-courier
@@ -13,7 +13,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'BDC_VERSION', '0.13.0' );
+define( 'BDC_VERSION', '0.14.0' );
 define( 'BDC_FILE', __FILE__ );
 define( 'BDC_DIR', plugin_dir_path( __FILE__ ) );
 define( 'BDC_URL', plugin_dir_url( __FILE__ ) );
@@ -48,6 +48,7 @@ add_action(
 		require_once BDC_DIR . 'includes/class-bdc-sync.php';
 		require_once BDC_DIR . 'includes/class-bdc-fraud.php';
 		require_once BDC_DIR . 'includes/class-bdc-notes.php';
+		require_once BDC_DIR . 'includes/class-bdc-history.php';
 		require_once BDC_DIR . 'includes/class-bdc-customer.php';
 
 		BDC_Statuses::init();
@@ -78,6 +79,7 @@ add_action(
 			BDC_Reports::init();
 			BDC_Quick::init();
 			BDC_Orders_List::init();
+			BDC_History::init();
 			add_action( 'admin_init', array( 'BDC_Shipment', 'maybe_upgrade' ) );
 		}
 	}

@@ -123,6 +123,13 @@ class BDC_Quick {
 		ob_start();
 		?>
 		<div class="bdc-quick" data-order="<?php echo esc_attr( $id ); ?>">
+			<?php $quick_logo = BDC_Brand::logo_url( 'thumbnail' ); ?>
+			<?php if ( $quick_logo ) : ?>
+				<div class="bdc-quick__brand">
+					<img src="<?php echo esc_url( $quick_logo ); ?>" alt="">
+					<span><?php echo esc_html( BDC_Print::business()['name'] ); ?></span>
+				</div>
+			<?php endif; ?>
 			<section class="bdc-quick__section">
 				<h3><?php esc_html_e( 'Status', 'bd-courier' ); ?></h3>
 				<?php foreach ( self::status_groups() as $group => $statuses ) : ?>
@@ -149,11 +156,16 @@ class BDC_Quick {
 			</section>
 
 			<section class="bdc-quick__section">
+				<h3><?php esc_html_e( 'Customer history', 'bd-courier' ); ?></h3>
+				<?php echo BDC_History::render( $order, 5 ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+			</section>
+
+			<section class="bdc-quick__section">
 				<h3><?php esc_html_e( 'Private notes', 'bd-courier' ); ?></h3>
 				<p class="bdc-quick__help"><?php esc_html_e( 'Only your team sees these. The newest note is filled in as the note for the rider when you send the order with Pathao or Steadfast.', 'bd-courier' ); ?></p>
 				<div class="bdc-quick__add">
 					<label class="screen-reader-text" for="bdc-note-<?php echo esc_attr( $id ); ?>"><?php esc_html_e( 'New private note', 'bd-courier' ); ?></label>
-					<textarea id="bdc-note-<?php echo esc_attr( $id ); ?>" rows="2" placeholder="<?php esc_attr_e( 'For example: deliver after 5 pm, call before coming', 'bd-courier' ); ?>"></textarea>
+					<textarea id="bdc-note-<?php echo esc_attr( $id ); ?>" rows="1" placeholder="<?php esc_attr_e( 'For example: deliver after 5 pm, call before coming', 'bd-courier' ); ?>"></textarea>
 					<button type="button" class="button button-primary bdc-note-add" data-order="<?php echo esc_attr( $id ); ?>"><?php esc_html_e( 'Add note', 'bd-courier' ); ?></button>
 				</div>
 				<?php echo self::notes_list( $order ); // phpcs:ignore WordPress.Security.EscapeOutput ?>

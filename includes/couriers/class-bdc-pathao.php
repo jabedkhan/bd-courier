@@ -33,23 +33,51 @@ class BDC_Pathao extends BDC_Courier {
 			return new WP_Error( 'bdc_not_connected', __( 'Pathao is not connected yet. Add your Client ID and Client Secret in BD Courier → Pathao.', 'bd-courier' ) );
 		}
 
+		$username = $this->setting( 'username' );
+		$password = $this->setting( 'password' );
+
 		// A token belongs to one set of credentials; changing them must not reuse it.
-		$fingerprint = md5( $this->setting( 'environment', 'live' ) . '|' . $this->setting( 'client_id' ) . '|' . $this->setting( 'client_secret' ) );
+		$fingerprint = md5( $this->setting( 'environment', 'live' ) . '|' . $this->setting( 'client_id' ) . '|' . $this->setting( 'client_secret' ) . '|' . $username . '|' . $password );
 		$saved       = get_option( self::TOKEN_OPTION );
 
 		if ( ! $force_new && is_array( $saved ) && ( $saved['for'] ?? '' ) === $fingerprint && ( $saved['expires'] ?? 0 ) > time() + 60 ) {
 			return $saved['token'];
 		}
 
-		$response = BDC_Http::request(
-			'POST',
-			$this->base_url() . '/aladdin/api/v1/external/login',
-			array(),
-			array(
-				'client_id'     => $this->setting( 'client_id' ),
-				'client_secret' => $this->setting( 'client_secret' ),
-			)
-		);
+		/*
+		 * Pathao has two ways to log in:
+		 * - with the merchant's username and password ("issue-token"), which
+		 *   the sandbox needs and every account supports;
+		 * - with only the Client ID and Secret ("external/login"), which
+		 *   newer live accounts support.
+		 * The first is used whenever a username and password are saved.
+		 */
+		if ( '' !== $username && '' !== $password ) {
+			$response = BDC_Http::request(
+				'POST',
+				$this->base_url() . '/aladdin/api/v1/issue-token',
+				array(),
+				array(
+					'client_id'     => $this->setting( 'client_id' ),
+					'client_secret' => $this->setting( 'client_secret' ),
+					'grant_type'    => 'password',
+					'username'      => $username,
+					'password'      => $password,
+				),
+				60
+			);
+		} else {
+			$response = BDC_Http::request(
+				'POST',
+				$this->base_url() . '/aladdin/api/v1/external/login',
+				array(),
+				array(
+					'client_id'     => $this->setting( 'client_id' ),
+					'client_secret' => $this->setting( 'client_secret' ),
+				),
+				60
+			);
+		}
 
 		if ( is_wp_error( $response ) ) {
 			return $response;
@@ -57,7 +85,17 @@ class BDC_Pathao extends BDC_Courier {
 
 		if ( empty( $response['body']['access_token'] ) ) {
 			delete_option( self::TOKEN_OPTION );
-			return new WP_Error( 'bdc_auth', __( 'Pathao did not accept the Client ID and Client Secret. Please check them and make sure the right environment is selected.', 'bd-courier' ) );
+
+			if ( '' === $username || '' === $password ) {
+				return new WP_Error(
+					'bdc_auth',
+					'sandbox' === $this->setting( 'environment', 'live' )
+						? __( 'Pathao sandbox needs a username and password as well. Fill them in, or click "Use Pathao test account".', 'bd-courier' )
+						: __( 'Pathao did not accept the Client ID and Client Secret. Check them, or also enter your Pathao merchant username and password.', 'bd-courier' )
+				);
+			}
+
+			return new WP_Error( 'bdc_auth', __( 'Pathao did not accept these login details. Check the Client ID, Client Secret, username and password, and that the right environment is selected.', 'bd-courier' ) );
 		}
 
 		update_option(
@@ -510,6 +548,18 @@ class BDC_Pathao extends BDC_Courier {
 		$total     = self::pick_number( $data, array( 'total_delivery', 'total_parcels', 'total_orders', 'total' ) );
 		$delivered = self::pick_number( $data, array( 'successful_delivery', 'total_delivered', 'delivered', 'success' ) );
 		$ratio     = self::pick_number( $data, array( 'success_rate', 'success_ratio', 'delivery_ratio' ) );
+
+		// Newer Pathao accounts answer with a rating word instead of numbers.
+		$rating = isset( $data['customer_rating'] ) && is_string( $data['customer_rating'] ) ? sanitize_key( $data['customer_rating'] ) : '';
+		if ( $response['code'] < 300 && null === $total && null === $ratio && '' !== $rating ) {
+			return array(
+				'total'     => null,
+				'delivered' => null,
+				'cancelled' => null,
+				'ratio'     => null,
+				'rating'    => $rating,
+			);
+		}
 
 		if ( $response['code'] >= 300 || ( null === $total && null === $ratio ) ) {
 			$message = isset( $response['body']['message'] ) && is_string( $response['body']['message'] ) ? sanitize_text_field( $response['body']['message'] ) : '';

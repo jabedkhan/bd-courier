@@ -33,10 +33,13 @@ class BDC_Settings {
 				'environment'    => 'live',
 				'client_id'      => '',
 				'client_secret'  => '',
+				'username'       => '',
+				'password'       => '',
 				'webhook_secret' => '',
 				'store_id'       => '',
 				'delivery_type'  => '48',
 				'item_type'      => '2',
+				'default_note'   => '',
 			),
 			'steadfast' => array(
 				'api_key'       => '',
@@ -44,6 +47,7 @@ class BDC_Settings {
 				'webhook_token' => '',
 				'delivery_type' => '0',
 				'send_note'     => 'yes',
+				'default_note'  => '',
 			),
 		);
 	}

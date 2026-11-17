@@ -79,6 +79,25 @@ abstract class BDC_Courier {
 		return null;
 	}
 
+	/**
+	 * The first web address in a courier reply that matches a pattern,
+	 * searching nested values too. Used to pick up public tracking links.
+	 */
+	public static function find_link( $data, $pattern ) {
+		if ( is_string( $data ) ) {
+			return preg_match( $pattern, $data, $match ) ? esc_url_raw( $match[0] ) : '';
+		}
+		if ( is_array( $data ) ) {
+			foreach ( $data as $value ) {
+				$link = self::find_link( $value, $pattern );
+				if ( '' !== $link ) {
+					return $link;
+				}
+			}
+		}
+		return '';
+	}
+
 	/** First whole number found under any of the given names, or null. */
 	protected static function pick_number( array $data, array $names ) {
 		foreach ( $names as $name ) {
@@ -156,8 +175,9 @@ abstract class BDC_Courier {
 	}
 
 	/**
-	 * Starting text for the rider note: the team's newest private note,
-	 * or the customer's checkout note when asked for and there is no private note.
+	 * Starting text for the rider note: this courier's default note from
+	 * Settings, then the team's newest private note. When there is no private
+	 * note, the customer's checkout note can be used instead.
 	 */
 	protected function rider_note( WC_Order $order, $use_customer_note = false ) {
 		$note = BDC_Notes::latest( $order );
@@ -166,7 +186,9 @@ abstract class BDC_Courier {
 			$note = trim( (string) $order->get_customer_note() );
 		}
 
-		return $note;
+		$default = trim( (string) $this->setting( 'default_note' ) );
+
+		return trim( implode( "\n", array_filter( array( $default, $note ), 'strlen' ) ) );
 	}
 
 	protected function item_quantity( WC_Order $order ) {

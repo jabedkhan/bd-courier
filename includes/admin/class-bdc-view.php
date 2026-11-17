@@ -197,6 +197,9 @@ class BDC_View {
 		if ( $track_url ) {
 			/* translators: %s: courier name */
 			$actions .= self::icon_link( 'location', sprintf( __( 'Track on %s', 'bd-courier' ), $courier->label() ), $track_url );
+		} elseif ( $panel_url ) {
+			/* translators: %s: courier name */
+			$actions .= self::icon_link( 'location', sprintf( __( 'Open this parcel in the %s merchant panel', 'bd-courier' ), $courier->label() ), $panel_url );
 		}
 		$actions .= self::icon_link( 'printer', __( 'Print the invoice or parcel label', 'bd-courier' ), BDC_Print::url( $id ) );
 
@@ -248,6 +251,10 @@ class BDC_View {
 		if ( isset( $data['ratio'] ) && null !== $data['ratio'] ) {
 			/* translators: %d: percentage */
 			$bits[] = sprintf( __( '%d%% delivered', 'bd-courier' ), $data['ratio'] );
+		}
+		if ( ! $bits && ! empty( $data['rating'] ) ) {
+			/* translators: %s: rating from the courier, e.g. "New customer" */
+			$bits[] = sprintf( __( 'Rated "%s" by the courier', 'bd-courier' ), BDC_Fraud::rating_text( $data['rating'] ) );
 		}
 
 		return implode( ' · ', $bits );
@@ -377,16 +384,34 @@ class BDC_View {
 
 			<div class="bdc-form__body">
 				<?php if ( $is_edit ) : ?>
+					<?php
+					$edit_shipment = BDC_Shipment::get( $order );
+					$edit_panel    = $edit_shipment ? $courier->panel_url( $edit_shipment ) : '';
+					?>
 					<div class="bdc-form__notice">
+						<strong>
+							<?php
+							/* translators: %s: courier name */
+							echo esc_html( sprintf( __( 'Changes here are not sent to %s.', 'bd-courier' ), $courier->label() ) );
+							?>
+						</strong>
 						<?php
 						echo esc_html(
 							sprintf(
 								/* translators: %s: courier name */
-								__( '%1$s does not accept changes from outside its own panel. Your changes are saved here, and the parcel is flagged until you make the same change in the %1$s merchant panel.', 'bd-courier' ),
+								__( '%1$s does not let other software change a parcel after it is booked. Your changes are saved in your dashboard and the parcel is flagged until you make the same change in the %1$s merchant panel.', 'bd-courier' ),
 								$courier->label()
 							)
 						);
 						?>
+						<?php if ( $edit_panel ) : ?>
+							<a href="<?php echo esc_url( $edit_panel ); ?>" target="_blank" rel="noopener">
+								<?php
+								/* translators: %s: courier name */
+								echo esc_html( sprintf( __( 'Open this parcel in %s', 'bd-courier' ), $courier->label() ) );
+								?>
+							</a>
+						<?php endif; ?>
 					</div>
 				<?php endif; ?>
 				<div class="bdc-summary">
@@ -490,6 +515,7 @@ class BDC_View {
 					id="<?php echo esc_attr( $id ); ?>"
 					name="<?php echo esc_attr( $key ); ?>"
 					value="<?php echo esc_attr( $value ); ?>"
+					<?php echo isset( $field['placeholder'] ) ? 'placeholder="' . esc_attr( $field['placeholder'] ) . '"' : ''; ?>
 					<?php echo isset( $field['min'] ) ? 'min="' . esc_attr( $field['min'] ) . '"' : ''; ?>
 					<?php echo isset( $field['max'] ) ? 'max="' . esc_attr( $field['max'] ) . '"' : ''; ?>
 					<?php echo isset( $field['step'] ) ? 'step="' . esc_attr( $field['step'] ) . '"' : ''; ?>

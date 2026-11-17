@@ -138,8 +138,9 @@ class BDC_Webhooks {
 			$order,
 			$status,
 			array(
-				'delivery_fee' => $request->get_param( 'delivery_charge' ),
-				'message'      => $request->get_param( 'tracking_message' ),
+				'delivery_fee'  => $request->get_param( 'delivery_charge' ),
+				'message'       => $request->get_param( 'tracking_message' ),
+				'tracking_link' => BDC_Courier::find_link( $request->get_params(), BDC_Steadfast::LINK_PATTERN ),
 			)
 		);
 		update_option( 'bdc_steadfast_last_webhook', time(), false );

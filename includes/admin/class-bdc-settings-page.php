@@ -129,11 +129,21 @@ class BDC_Settings_Page {
 				'store_id'      => $text( 'store_id' ),
 				'delivery_type' => isset( BDC_Pathao::delivery_types()[ $text( 'delivery_type' ) ] ) ? $text( 'delivery_type' ) : '48',
 				'item_type'     => isset( BDC_Pathao::item_types()[ $text( 'item_type' ) ] ) ? $text( 'item_type' ) : '2',
+				'username'      => $text( 'username' ),
+				'default_note'  => isset( $posted['default_note'] ) && is_scalar( $posted['default_note'] ) ? trim( sanitize_textarea_field( (string) $posted['default_note'] ) ) : '',
 			);
 			// An empty secret field means "keep the one already saved".
 			if ( '' !== $text( 'client_secret' ) ) {
 				$values['client_secret'] = $text( 'client_secret' );
 			}
+			if ( '' !== $text( 'password' ) ) {
+				$values['password'] = $text( 'password' );
+			}
+			// No username means the password is not used either.
+			if ( '' === $values['username'] ) {
+				$values['password'] = '';
+			}
+			delete_option( BDC_Pathao::TOKEN_OPTION );
 			delete_transient( 'bdc_pathao_stores' );
 			BDC_Settings::update_section( 'pathao', $values );
 		} elseif ( 'steadfast' === $tab ) {
@@ -141,6 +151,7 @@ class BDC_Settings_Page {
 				'api_key'       => $text( 'api_key' ),
 				'delivery_type' => '1' === $text( 'delivery_type' ) ? '1' : '0',
 				'send_note'     => isset( $posted['send_note'] ) ? 'yes' : 'no',
+				'default_note'  => isset( $posted['default_note'] ) && is_scalar( $posted['default_note'] ) ? trim( sanitize_textarea_field( (string) $posted['default_note'] ) ) : '',
 			);
 			if ( '' !== $text( 'secret_key' ) ) {
 				$values['secret_key'] = $text( 'secret_key' );
@@ -417,7 +428,7 @@ class BDC_Settings_Page {
 				<input type="text" id="bdc-brand-accent" name="bdc[accent]" value="<?php echo esc_attr( BDC_Brand::accent() ); ?>" class="bdc-colour" data-default-color="<?php echo esc_attr( BDC_Brand::DEFAULT_ACCENT ); ?>">
 			<?php self::row_close( __( 'Used for main buttons, the current page and highlights. Pathao and Steadfast keep their own colours.', 'bd-courier' ) ); ?>
 
-			<?php self::row_open( __( 'Logo', 'bd-courier' ) ); ?>
+			<?php self::row_open( __( 'Business logo', 'bd-courier' ) ); ?>
 				<div class="bdc-logo">
 					<input type="hidden" name="bdc[logo_id]" value="<?php echo esc_attr( $print['logo_id'] ); ?>">
 					<div class="bdc-logo__preview">
@@ -428,7 +439,7 @@ class BDC_Settings_Page {
 					<button type="button" class="button bdc-logo__choose"><?php esc_html_e( 'Choose logo', 'bd-courier' ); ?></button>
 					<button type="button" class="button-link bdc-logo__remove" <?php echo $logo ? '' : 'hidden'; ?>><?php esc_html_e( 'Remove', 'bd-courier' ); ?></button>
 				</div>
-			<?php self::row_close( __( 'Shown at the top of these pages and on printed invoices. A square or wide image works best.', 'bd-courier' ) ); ?>
+			<?php self::row_close( __( 'Used everywhere: the top of these pages, the Orders quick view, invoices, parcel labels and customer emails. A square or wide PNG or JPG works best.', 'bd-courier' ) ); ?>
 
 		<?php self::panel_close(); ?>
 
@@ -481,6 +492,22 @@ class BDC_Settings_Page {
 				<?php self::secret_input( 'bdc-pathao-secret', 'client_secret', '' !== $settings['client_secret'] ); ?>
 			<?php self::row_close( '' !== $settings['client_secret'] ? __( 'A secret is saved. Type a new one only to replace it.', 'bd-courier' ) : '' ); ?>
 
+			<?php self::row_open( __( 'Username', 'bd-courier' ), 'bdc-pathao-username' ); ?>
+				<input type="text" id="bdc-pathao-username" name="bdc[username]" value="<?php echo esc_attr( $settings['username'] ); ?>" autocomplete="off" placeholder="<?php esc_attr_e( 'Your Pathao merchant login email', 'bd-courier' ); ?>">
+			<?php self::row_close( __( 'Needed for the Sandbox, and for live accounts that do not log in with the Client ID and Secret alone.', 'bd-courier' ) ); ?>
+
+			<?php self::row_open( __( 'Password', 'bd-courier' ), 'bdc-pathao-password' ); ?>
+				<?php self::secret_input( 'bdc-pathao-password', 'password', '' !== $settings['password'] ); ?>
+			<?php self::row_close( '' !== $settings['password'] ? __( 'A password is saved. Type a new one only to replace it.', 'bd-courier' ) : '' ); ?>
+
+			<?php self::row_open( __( 'Testing', 'bd-courier' ) ); ?>
+				<button type="button" class="button bdc-pathao-test-account"
+					data-client-id="7N1aMJQbWm"
+					data-client-secret="wRcaibZkUdSNz2EI9ZyuXLlNrnAv0TdPUPXMnD39"
+					data-username="test@pathao.com"
+					data-password="lovePathao"><?php esc_html_e( 'Use Pathao test account', 'bd-courier' ); ?></button>
+			<?php self::row_close( __( 'Fills in Pathao\'s public sandbox account and switches to Sandbox, so you can try sending without a real parcel. Remember to switch back to Live with your own details afterwards.', 'bd-courier' ) ); ?>
+
 		<?php self::panel_close(); ?>
 
 		<?php self::panel_open( __( 'Automatic status updates', 'bd-courier' ), __( 'Add these two values under Webhook in the Pathao merchant panel, so Pathao can tell your shop when a parcel moves.', 'bd-courier' ) ); ?>
@@ -513,6 +540,10 @@ class BDC_Settings_Page {
 			<?php self::row_open( __( 'Item type', 'bd-courier' ), 'bdc-pathao-item' ); ?>
 				<?php self::select( 'bdc-pathao-item', 'item_type', BDC_Pathao::item_types(), $settings['item_type'] ); ?>
 			<?php self::row_close(); ?>
+
+			<?php self::row_open( __( 'Default note for the rider', 'bd-courier' ), 'bdc-pathao-note' ); ?>
+				<textarea id="bdc-pathao-note" name="bdc[default_note]" rows="2" class="bdc-wide" placeholder="<?php esc_attr_e( 'For example: Call the customer before delivery. Handle with care.', 'bd-courier' ); ?>"><?php echo esc_textarea( $settings['default_note'] ); ?></textarea>
+			<?php self::row_close( __( 'Added to every Pathao parcel. If the order has a private note, it is added after this one. You can still edit it before sending.', 'bd-courier' ) ); ?>
 
 		<?php self::panel_close(); ?>
 
@@ -556,7 +587,11 @@ class BDC_Settings_Page {
 				<?php self::select( 'bdc-steadfast-delivery', 'delivery_type', BDC_Steadfast::delivery_types(), $settings['delivery_type'] ); ?>
 			<?php self::row_close(); ?>
 
-			<?php self::row_open( __( 'Rider note', 'bd-courier' ) ); ?>
+			<?php self::row_open( __( 'Default note for the rider', 'bd-courier' ), 'bdc-steadfast-note' ); ?>
+				<textarea id="bdc-steadfast-note" name="bdc[default_note]" rows="2" class="bdc-wide" placeholder="<?php esc_attr_e( 'For example: Call the customer before delivery. Handle with care.', 'bd-courier' ); ?>"><?php echo esc_textarea( $settings['default_note'] ); ?></textarea>
+			<?php self::row_close( __( 'Added to every Steadfast parcel. If the order has a private note, it is added after this one. You can still edit it before sending.', 'bd-courier' ) ); ?>
+
+			<?php self::row_open( __( 'Customer\'s checkout note', 'bd-courier' ) ); ?>
 				<label class="bdc-check">
 					<input type="checkbox" name="bdc[send_note]" value="yes" <?php checked( 'yes', $settings['send_note'] ); ?>>
 					<span><?php esc_html_e( 'Use the customer\'s checkout note when the order has no private note', 'bd-courier' ); ?></span>

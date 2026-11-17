@@ -3633,64 +3633,84 @@ td.column-bdc_courier .bdc-consignment {
 	font-size: 11px;
 }
 
-/* ---- Orders list: always exactly as wide as the screen, never wider ----
-   WooCommerce gives its columns fixed widths that can add up to more than the
-   window. Here the columns share the available width instead. */
+
+/* ---- Orders list: always as wide as the page, never wider ----
+   Fixed column shares instead of WooCommerce's widths or content-based widths,
+   so long names or addresses wrap inside their column instead of pushing the
+   table past the edge of the screen. */
 
 @media (min-width: 783px) {
 	.post-type-shop_order.edit-php .wp-list-table,
 	.woocommerce_page_wc-orders .wp-list-table {
 		width: 100%;
 		max-width: 100%;
-		table-layout: auto;
+		table-layout: fixed;
 	}
 
 	.post-type-shop_order.edit-php .wp-list-table th,
 	.post-type-shop_order.edit-php .wp-list-table td,
 	.woocommerce_page_wc-orders .wp-list-table th,
 	.woocommerce_page_wc-orders .wp-list-table td {
-		width: auto !important;
-		overflow-wrap: break-word;
+		overflow-wrap: anywhere;
+		word-break: normal;
 	}
 
 	.post-type-shop_order.edit-php .wp-list-table .check-column,
 	.woocommerce_page_wc-orders .wp-list-table .check-column {
-		width: 2.2em !important;
+		width: 2.4em;
 	}
 
-	/* Room each column needs at the very least; the rest is shared out. */
 	.post-type-shop_order.edit-php .wp-list-table .column-order_number,
 	.woocommerce_page_wc-orders .wp-list-table .column-order_number {
-		min-width: 120px;
-	}
-
-	.post-type-shop_order.edit-php .wp-list-table .column-order_status,
-	.woocommerce_page_wc-orders .wp-list-table .column-order_status {
-		min-width: 92px;
-	}
-
-	.post-type-shop_order.edit-php .wp-list-table .column-bdc_courier,
-	.woocommerce_page_wc-orders .wp-list-table .column-bdc_courier {
-		min-width: 118px;
-	}
-
-	.post-type-shop_order.edit-php .wp-list-table .column-order_total,
-	.woocommerce_page_wc-orders .wp-list-table .column-order_total {
-		white-space: nowrap;
+		width: 19%;
 	}
 
 	.post-type-shop_order.edit-php .wp-list-table .column-order_date,
 	.woocommerce_page_wc-orders .wp-list-table .column-order_date {
-		min-width: 76px;
+		width: 9%;
 	}
 
-	.post-type-shop_order.edit-php .wp-list-table mark.order-status > span,
-	.woocommerce_page_wc-orders .wp-list-table mark.order-status > span {
+	.post-type-shop_order.edit-php .wp-list-table .column-order_status,
+	.woocommerce_page_wc-orders .wp-list-table .column-order_status {
+		width: 12%;
+	}
+
+	.post-type-shop_order.edit-php .wp-list-table .column-bdc_courier,
+	.woocommerce_page_wc-orders .wp-list-table .column-bdc_courier {
+		width: 17%;
+	}
+
+	.post-type-shop_order.edit-php .wp-list-table .column-billing_address,
+	.post-type-shop_order.edit-php .wp-list-table .column-shipping_address,
+	.woocommerce_page_wc-orders .wp-list-table .column-billing_address,
+	.woocommerce_page_wc-orders .wp-list-table .column-shipping_address {
+		width: 20%;
+	}
+
+	.post-type-shop_order.edit-php .wp-list-table .column-order_total,
+	.woocommerce_page_wc-orders .wp-list-table .column-order_total {
+		width: 9%;
+	}
+
+	.post-type-shop_order.edit-php .wp-list-table .column-wc_actions,
+	.woocommerce_page_wc-orders .wp-list-table .column-wc_actions,
+	.post-type-shop_order.edit-php .wp-list-table .column-origin,
+	.woocommerce_page_wc-orders .wp-list-table .column-origin {
+		width: 9%;
+	}
+
+	/* Status tag and courier buttons stay on one line and shrink with their column. */
+	.wp-list-table td.column-order_status mark.order-status {
+		max-width: 100%;
+	}
+
+	.wp-list-table td.column-order_status mark.order-status > span {
+		min-width: 0;
 		white-space: nowrap;
 	}
 }
 
-/* Smaller windows: tighter cells, wrapping dates, and the low-value "Origin" column steps aside. */
+/* Smaller desktop windows: the low-value "Origin" column steps aside. */
 @media (min-width: 783px) and (max-width: 1180px) {
 	.post-type-shop_order.edit-php .wp-list-table .column-origin,
 	.woocommerce_page_wc-orders .wp-list-table .column-origin {
@@ -3704,32 +3724,192 @@ td.column-bdc_courier .bdc-consignment {
 		padding-right: 6px;
 		padding-left: 6px;
 	}
+}
 
-	.post-type-shop_order.edit-php .wp-list-table .column-order_date,
-	.post-type-shop_order.edit-php .wp-list-table .column-order_date *,
-	.woocommerce_page_wc-orders .wp-list-table .column-order_date,
-	.woocommerce_page_wc-orders .wp-list-table .column-order_date * {
-		min-width: 0;
-		white-space: normal;
+/* Phone number right under the customer's name */
+.column-order_number .bdc-order-phone {
+	display: block;
+	width: fit-content;
+	margin: 2px 0 0;
+}
+
+/* Quick view: the note box starts one line high, level with "Add note". */
+.bdc-quick__add {
+	align-items: flex-start;
+}
+
+.bdc-quick__add textarea {
+	box-sizing: border-box;
+	height: 40px;
+	min-height: 40px;
+	padding: 9px 12px;
+	line-height: 20px;
+}
+
+.bdc-quick__add .button,
+.bdc-quick .bdc-quick__add .button {
+	box-sizing: border-box;
+	height: 40px;
+	min-height: 40px;
+	align-self: flex-start;
+}
+
+@media (max-width: 782px) {
+	.bdc-quick__add textarea,
+	.bdc-quick__add .button,
+	.bdc-quick .bdc-quick__add .button {
+		height: 44px;
+		min-height: 44px;
 	}
+}
 
-	.post-type-shop_order.edit-php .wp-list-table .column-order_number,
-	.woocommerce_page_wc-orders .wp-list-table .column-order_number {
-		min-width: 104px;
-	}
+/* ---- Customer history ---- */
 
-	.post-type-shop_order.edit-php .wp-list-table .column-order_status,
-	.woocommerce_page_wc-orders .wp-list-table .column-order_status {
-		min-width: 86px;
-	}
+.bdc-history-slot {
+	display: block;
+	margin-top: 3px;
+}
 
-	.post-type-shop_order.edit-php .wp-list-table .column-bdc_courier,
-	.woocommerce_page_wc-orders .wp-list-table .column-bdc_courier {
-		min-width: 112px;
-	}
+.bdc-history-badge {
+	display: inline-flex;
+	align-items: center;
+	padding: 1px 8px;
+	border: 0;
+	border-radius: 999px;
+	background: #eef0f3;
+	color: var(--bdc-text);
+	font-size: 11px;
+	font-weight: 600;
+	line-height: 1.6;
+	cursor: pointer;
+}
 
+.bdc-history-badge.is-returning {
+	background: #e0ecff;
+	color: #1e40af;
+}
+
+.bdc-history-badge.is-risky {
+	background: #fee2e2;
+	color: #991b1b;
+}
+
+.bdc-history-badge.is-new {
+	background: #ecfdf5;
+	color: #166534;
+}
+
+.bdc-history-badge:hover,
+.bdc-history-badge:focus {
+	box-shadow: 0 0 0 2px var(--bdc-accent-soft);
+	outline: none;
+}
+
+.bdc-history-box__stats {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px 14px;
+	margin-bottom: 10px;
+	font-size: 12px;
+	color: var(--bdc-muted);
+}
+
+.bdc-history-box__stats strong {
+	color: var(--bdc-ink);
+	font-size: 14px;
+}
+
+.bdc-history-box__stats .is-good strong {
+	color: var(--bdc-good);
+}
+
+.bdc-history-box__stats .is-bad strong {
+	color: var(--bdc-bad);
+}
+
+.bdc-history-box__scroll {
+	border: 1px solid var(--bdc-line);
+	border-radius: 8px;
+	overflow-x: auto;
+}
+
+.bdc-history-table {
+	width: 100%;
+	min-width: 480px;
+	border-collapse: collapse;
+	font-size: 12px;
+}
+
+.bdc-history-table th {
+	padding: 7px 10px;
+	background: var(--bdc-soft);
+	color: var(--bdc-muted);
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.04em;
+	text-align: left;
+	text-transform: uppercase;
+}
+
+.bdc-history-table td {
+	padding: 7px 10px;
+	border-top: 1px solid var(--bdc-line);
+	vertical-align: middle;
+}
+
+.bdc-history-table tr.is-this td {
+	background: var(--bdc-accent-soft);
+}
+
+.bdc-history-table .bdc-num {
+	text-align: right;
+	white-space: nowrap;
+}
+
+.bdc-history-table mark.order-status {
+	font-size: 11px;
+	line-height: 1.9;
+}
+
+.bdc-history-table .bdc-badge + .bdc-muted {
+	display: block;
+	margin-top: 2px;
+	font-size: 11px;
+}
+
+#bdc-history .inside {
+	margin: 0;
+	padding: 12px;
+}
+
+.bdc-quick__brand {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-top: 12px;
+	color: var(--bdc-muted);
+	font-size: 12px;
+	font-weight: 600;
+}
+
+.bdc-quick__brand img {
+	max-width: 80px;
+	max-height: 28px;
+	border-radius: 4px;
+}
+
+/* Long status names wrap onto two lines instead of being cut off. */
+@media (min-width: 783px) {
 	.wp-list-table td.column-order_status mark.order-status {
-		padding: 0 6px;
-		font-size: 10.5px;
+		padding-top: 3px;
+		padding-bottom: 3px;
+		line-height: 1.3;
+	}
+
+	.wp-list-table td.column-order_status mark.order-status > span {
+		overflow: visible;
+		white-space: normal;
+		text-overflow: clip;
+		text-align: center;
 	}
 }

@@ -398,6 +398,9 @@ class BDC_Print {
 		<section class="bdc-doc bdc-label">
 			<header class="bdc-label__head">
 				<div class="bdc-label__from">
+					<?php if ( $business['logo'] ) : ?>
+						<img class="bdc-label__logo" src="<?php echo esc_url( $business['logo'] ); ?>" alt="">
+					<?php endif; ?>
 					<small><?php esc_html_e( 'From', 'bd-courier' ); ?></small>
 					<strong><?php echo esc_html( $business['name'] ); ?></strong>
 					<?php if ( $business['phone'] ) : ?>

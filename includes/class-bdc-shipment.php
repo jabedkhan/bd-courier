@@ -30,6 +30,7 @@ class BDC_Shipment {
 			'courier'        => '',
 			'consignment_id' => '',
 			'tracking_code'  => '',
+			'tracking_link'  => '', // Public tracking page, when the courier gives one.
 			'courier_status' => '', // The courier's own wording.
 			'status'         => '', // Our common status key.
 			'delivery_fee'   => '',
@@ -163,7 +164,7 @@ class BDC_Shipment {
 			return $shipment;
 		}
 
-		foreach ( array( 'delivery_fee', 'consignment_id', 'tracking_code' ) as $field ) {
+		foreach ( array( 'delivery_fee', 'consignment_id', 'tracking_code', 'tracking_link' ) as $field ) {
 			if ( isset( $extra[ $field ] ) && '' !== (string) $extra[ $field ] ) {
 				$shipment[ $field ] = sanitize_text_field( (string) $extra[ $field ] );
 			}

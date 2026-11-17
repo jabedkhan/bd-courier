@@ -142,8 +142,35 @@ class BDC_Ajax {
 			wp_send_json_error( array( 'message' => __( 'This parcel is already finished, so it can no longer be edited.', 'bd-courier' ) ), 400 );
 		}
 
-		$fields                = $courier->edit_fields( $order, (array) $shipment['details'] );
-		list( $data, $errors ) = $courier->check( self::posted_fields( $fields ) );
+		$fields = $courier->edit_fields( $order, (array) $shipment['details'] );
+		$posted = self::posted_fields( $fields );
+
+		// The customer tracking link is stored on its own; it is not a parcel detail.
+		$link_saved = false;
+		if ( array_key_exists( 'tracking_link', $posted ) ) {
+			$link = trim( (string) $posted['tracking_link'] );
+			unset( $posted['tracking_link'], $fields['tracking_link'] );
+
+			$test = $shipment;
+			$test['tracking_link'] = esc_url_raw( $link );
+			if ( '' !== $link && '' === $courier->tracking_url( $test ) ) {
+				wp_send_json_error(
+					array(
+						'message' => __( 'Please correct the highlighted fields and try again.', 'bd-courier' ),
+						/* translators: %s: courier name */
+						'fields'  => array( 'tracking_link' => sprintf( __( 'This does not look like a %s tracking link.', 'bd-courier' ), $courier->label() ) ),
+					),
+					400
+				);
+			}
+
+			if ( $test['tracking_link'] !== (string) $shipment['tracking_link'] ) {
+				$shipment['tracking_link'] = $test['tracking_link'];
+				$link_saved                = true;
+			}
+		}
+
+		list( $data, $errors ) = $courier->check( $posted );
 
 		if ( $errors ) {
 			wp_send_json_error(
@@ -165,10 +192,13 @@ class BDC_Ajax {
 		}
 
 		if ( ! $changed ) {
+			if ( $link_saved ) {
+				BDC_Shipment::save( $order, $shipment );
+			}
 			wp_send_json_success(
 				array(
-					'message' => __( 'Nothing was changed.', 'bd-courier' ),
-					'cell'    => BDC_View::cell( $order ),
+					'message' => $link_saved ? __( 'Tracking link saved.', 'bd-courier' ) : __( 'Nothing was changed.', 'bd-courier' ),
+					'cell'    => BDC_View::cell( wc_get_order( $order->get_id() ) ),
 				)
 			);
 		}
@@ -263,6 +293,7 @@ class BDC_Ajax {
 				'courier'        => $courier->id(),
 				'consignment_id' => $result['consignment_id'],
 				'tracking_code'  => $result['tracking_code'],
+				'tracking_link'  => (string) ( $result['tracking_link'] ?? '' ),
 				'courier_status' => $result['courier_status'],
 				'status'         => 'sent',
 				'delivery_fee'   => $result['delivery_fee'],

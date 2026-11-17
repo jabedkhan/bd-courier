@@ -823,3 +823,12 @@ dd {
 		padding: 6mm 0 0;
 	}
 }
+
+/* Business logo on the label: small and greyscale so it prints cleanly. */
+.bdc-label__logo {
+	display: block;
+	max-width: 26mm;
+	max-height: 9mm;
+	margin-bottom: 1mm;
+	filter: grayscale(1) contrast(1.2);
+}

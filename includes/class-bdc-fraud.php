@@ -133,10 +133,14 @@ class BDC_Fraud {
 		$total     = 0;
 		$delivered = 0;
 		$ratios    = array();
+		$ratings   = array();
 
 		foreach ( $record['couriers'] as $data ) {
 			if ( isset( $data['error'] ) ) {
 				continue;
+			}
+			if ( ! empty( $data['rating'] ) ) {
+				$ratings[] = self::rating_level( $data['rating'] );
 			}
 			if ( null !== $data['total'] && null !== $data['delivered'] ) {
 				$total     += (int) $data['total'];
@@ -160,6 +164,16 @@ class BDC_Fraud {
 
 		if ( ! $has_answer ) {
 			$level = 'unknown';
+		} elseif ( null === $percent && $ratings ) {
+			// Only a rating word to go on: take the most cautious one.
+			$order = array( 'risk', 'caution', 'new', 'good' );
+			usort(
+				$ratings,
+				function ( $a, $b ) use ( $order ) {
+					return array_search( $a, $order, true ) - array_search( $b, $order, true );
+				}
+			);
+			$level = $ratings[0];
 		} elseif ( null === $percent || ( $total > 0 && $total < 3 ) ) {
 			$level = 'new';
 		} elseif ( $percent >= 80 ) {
@@ -177,9 +191,37 @@ class BDC_Fraud {
 		);
 	}
 
+	/** Pathao's rating word as one of our levels. */
+	public static function rating_level( $rating ) {
+		$rating = (string) $rating;
+		if ( false !== strpos( $rating, 'fraud' ) || false !== strpos( $rating, 'risk' ) || false !== strpos( $rating, 'bad' ) ) {
+			return 'risk';
+		}
+		if ( false !== strpos( $rating, 'good' ) || false !== strpos( $rating, 'excellent' ) || false !== strpos( $rating, 'trusted' ) ) {
+			return 'good';
+		}
+		if ( false !== strpos( $rating, 'average' ) || false !== strpos( $rating, 'moderate' ) ) {
+			return 'caution';
+		}
+		return 'new';
+	}
+
+	/** The rating word in readable form: "new_customer" becomes "New customer". */
+	public static function rating_text( $rating ) {
+		return ucfirst( trim( str_replace( array( '_', '-' ), ' ', (string) $rating ) ) );
+	}
+
 	/** The shortest wording, for the narrow Orders column. The coloured dot beside it carries the level. */
 	public static function short_label( array $record ) {
 		if ( in_array( $record['level'], array( 'good', 'caution', 'risk' ), true ) ) {
+			if ( null === $record['percent'] ) {
+				$words = array(
+					'good'    => __( 'Good customer', 'bd-courier' ),
+					'caution' => __( 'Be careful', 'bd-courier' ),
+					'risk'    => __( 'High risk', 'bd-courier' ),
+				);
+				return $words[ $record['level'] ];
+			}
 			/* translators: %d: percentage */
 			return sprintf( __( '%d%% delivered', 'bd-courier' ), $record['percent'] );
 		}
@@ -190,12 +232,21 @@ class BDC_Fraud {
 	public static function level_label( array $record ) {
 		switch ( $record['level'] ) {
 			case 'good':
+				if ( null === $record['percent'] ) {
+					return __( 'Good record', 'bd-courier' );
+				}
 				/* translators: %d: percentage */
 				return sprintf( __( 'Good record · %d%% delivered', 'bd-courier' ), $record['percent'] );
 			case 'caution':
+				if ( null === $record['percent'] ) {
+					return __( 'Be careful', 'bd-courier' );
+				}
 				/* translators: %d: percentage */
 				return sprintf( __( 'Be careful · %d%% delivered', 'bd-courier' ), $record['percent'] );
 			case 'risk':
+				if ( null === $record['percent'] ) {
+					return __( 'High risk', 'bd-courier' );
+				}
 				/* translators: %d: percentage */
 				return sprintf( __( 'High risk · %d%% delivered', 'bd-courier' ), $record['percent'] );
 			case 'new':

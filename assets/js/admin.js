@@ -629,15 +629,77 @@
 	/* ---- Orders list: phone number under the customer name (new order storage) ---- */
 
 	$( function () {
-		$( '.woocommerce_page_wc-orders td.column-order_number a.order-view strong' ).each( function () {
+		$( '.woocommerce_page_wc-orders .column-order_number a.order-view strong' ).each( function () {
 			var parts = $( this ).text().split( ' \u00b7 ' );
 			var phone = parts.length > 1 ? parts.pop() : '';
 
 			if ( /^\d{6,}$/.test( phone ) ) {
 				$( this ).text( parts.join( ' \u00b7 ' ) );
-				$( this ).closest( 'td' ).append( $( '<a class="bdc-order-phone"></a>' ).attr( 'href', 'tel:' + phone ).text( phone ) );
+				$( this ).closest( 'a.order-view' ).after( $( '<a class="bdc-order-phone"></a>' ).attr( 'href', 'tel:' + phone ).text( phone ) );
 			}
 		} );
+	} );
+
+	/* ---- Orders list: customer's order count under their name ---- */
+
+	$( function () {
+		$( 'template.bdc-history-seed' ).each( function () {
+			var $row = $( this ).closest( 'tr' );
+			var $name = $row.find( '.column-order_number' );
+			var badge = $( this ).html();
+
+			if ( $name.length && badge ) {
+				var $after = $name.find( '.bdc-order-phone' ).last();
+				if ( ! $after.length ) {
+					$after = $name.find( 'a.order-view' ).first();
+				}
+				$after.after( $( '<span class="bdc-history-slot"></span>' ).html( badge ) );
+			}
+			$( this ).remove();
+		} );
+	} );
+
+	$( document ).on( 'click', '.bdc-history-badge', function ( event ) {
+		event.preventDefault();
+		event.stopPropagation();
+
+		openModal();
+		$modal.addClass( 'bdc-modal--wide' );
+
+		post( 'history', { order_id: $( this ).data( 'order' ) } )
+			.done( function ( response ) {
+				if ( ! $modal ) {
+					return;
+				}
+				var $box = $( '<div class="bdc-record"></div>' );
+				$box.append(
+					$( '<header class="bdc-form__header"></header>' ).append(
+						$( '<h2 id="bdc-modal-title"></h2>' ).text( response.data.title ),
+						$( '<button type="button" class="bdc-modal__close">&times;</button>' ).attr( 'aria-label', text.close )
+					),
+					$( '<div class="bdc-form__body"></div>' ).html( response.data.html ),
+					$( '<footer class="bdc-form__footer"><span class="bdc-form__hint"></span></footer>' ).append(
+						$( '<button type="button" class="button bdc-modal__cancel"></button>' ).text( text.close )
+					)
+				);
+				$modal.find( '.bdc-modal__dialog' ).empty().append( $box );
+			} )
+			.fail( function ( xhr ) {
+				closeModal();
+				toast( errorOf( xhr ).message, true );
+			} );
+	} );
+
+	/* ---- Settings: Pathao test account ---- */
+
+	$( document ).on( 'click', '.bdc-pathao-test-account', function () {
+		var $b = $( this );
+		$( '#bdc-pathao-env' ).val( 'sandbox' );
+		$( '#bdc-pathao-id' ).val( $b.data( 'client-id' ) );
+		$( '#bdc-pathao-secret' ).val( $b.data( 'client-secret' ) );
+		$( '#bdc-pathao-username' ).val( $b.data( 'username' ) );
+		$( '#bdc-pathao-password' ).val( $b.data( 'password' ) );
+		toast( text.testAccount );
 	} );
 
 	/* ---- Settings: accent colour picker ---- */

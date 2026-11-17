@@ -9,10 +9,10 @@ class BDC_Http {
 	/**
 	 * @return array|WP_Error array( 'code' => int, 'body' => array )
 	 */
-	public static function request( $method, $url, array $headers = array(), $body = null ) {
+	public static function request( $method, $url, array $headers = array(), $body = null, $timeout = 30 ) {
 		$args = array(
 			'method'  => $method,
-			'timeout' => 30,
+			'timeout' => $timeout,
 			'headers' => array_merge(
 				array(
 					'Accept'       => 'application/json',

@@ -5,6 +5,9 @@ class BDC_Steadfast extends BDC_Courier {
 
 	const BASE_URL = 'https://portal.packzy.com/api/v1';
 
+	/** Steadfast's public tracking pages look like https://steadfast.com.bd/tl/<code>. */
+	const LINK_PATTERN = '#https?://(?:www\\.)?steadfast\\.com\\.bd/tl/[A-Za-z0-9_-]{8,}#';
+
 	public function id() {
 		return 'steadfast';
 	}
@@ -200,6 +203,7 @@ class BDC_Steadfast extends BDC_Courier {
 		return array(
 			'consignment_id' => (string) $consignment['consignment_id'],
 			'tracking_code'  => (string) ( $consignment['tracking_code'] ?? '' ),
+			'tracking_link'  => self::find_link( $body, self::LINK_PATTERN ),
 			'courier_status' => (string) ( $consignment['status'] ?? 'in_review' ),
 			'delivery_fee'   => '',
 			'cod'            => $payload['cod_amount'],
@@ -309,7 +313,10 @@ class BDC_Steadfast extends BDC_Courier {
 			return new WP_Error( 'bdc_status', __( 'Steadfast could not find this parcel. It may have been removed in the merchant panel.', 'bd-courier' ) );
 		}
 
-		return array( 'courier_status' => $status );
+		return array(
+			'courier_status' => $status,
+			'tracking_link'  => self::find_link( $response['body'], self::LINK_PATTERN ),
+		);
 	}
 
 	public function map_status( $raw_status ) {
@@ -332,7 +339,36 @@ class BDC_Steadfast extends BDC_Courier {
 		return array_key_exists( $key, $map ) ? $map[ $key ] : null;
 	}
 
+	/**
+	 * Steadfast's public tracking page needs a private link code that
+	 * Steadfast sends the customer by SMS; it is not the consignment ID or the
+	 * tracking code. It is used when Steadfast includes it in a reply, or when
+	 * staff paste it in the parcel's Edit form.
+	 */
 	public function tracking_url( array $shipment ) {
-		return '' === $shipment['tracking_code'] ? '' : 'https://steadfast.com.bd/t/' . rawurlencode( $shipment['tracking_code'] );
+		$link = (string) ( $shipment['tracking_link'] ?? '' );
+		return preg_match( self::LINK_PATTERN, $link ) ? $link : '';
+	}
+
+	/** The parcel in the Steadfast merchant panel (staff only; asks to log in). */
+	public function panel_url( array $shipment ) {
+		return '' === $shipment['consignment_id'] ? '' : 'https://steadfast.com.bd/user/consignment/' . rawurlencode( $shipment['consignment_id'] );
+	}
+
+	/** The Edit form has one more field: the public tracking link, if staff have it. */
+	public function edit_fields( WC_Order $order, array $details ) {
+		$fields = parent::edit_fields( $order, $details );
+
+		$shipment = BDC_Shipment::get( $order );
+		$fields['tracking_link'] = array(
+			'label'       => __( 'Customer tracking link (optional)', 'bd-courier' ),
+			'type'        => 'text',
+			'value'       => $shipment ? (string) $shipment['tracking_link'] : '',
+			'placeholder' => 'https://steadfast.com.bd/tl/…',
+			'help'        => __( 'Paste the link Steadfast sends the customer by SMS. It is shown to the customer and used by the Track button. Saving it does not change the parcel.', 'bd-courier' ),
+			'group'       => 'parcel',
+		);
+
+		return $fields;
 	}
 }

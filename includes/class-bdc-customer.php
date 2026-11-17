@@ -10,6 +10,7 @@ class BDC_Customer {
 
 	public static function init() {
 		add_filter( 'woocommerce_email_classes', array( __CLASS__, 'email_classes' ) );
+		add_filter( 'option_woocommerce_email_header_image', array( __CLASS__, 'email_logo' ) );
 		add_filter( 'woocommerce_email_actions', array( __CLASS__, 'email_actions' ) );
 
 		if ( 'yes' !== BDC_Settings::get( 'general', 'customer_tracking', 'yes' ) ) {
@@ -19,6 +20,15 @@ class BDC_Customer {
 		add_action( 'woocommerce_order_details_after_order_table', array( __CLASS__, 'order_page' ), 5 );
 		add_action( 'woocommerce_email_order_meta', array( __CLASS__, 'email' ), 5, 3 );
 		add_filter( 'woocommerce_my_account_my_orders_actions', array( __CLASS__, 'account_action' ), 10, 2 );
+	}
+
+	/** WooCommerce's email logo, or the business logo from BD Courier when that is empty. */
+	public static function email_logo( $value ) {
+		if ( '' !== trim( (string) $value ) || ! class_exists( 'BDC_Brand' ) ) {
+			return $value;
+		}
+		$logo = BDC_Brand::logo_url( 'medium' );
+		return '' !== $logo ? $logo : $value;
 	}
 
 	public static function email_classes( $emails ) {

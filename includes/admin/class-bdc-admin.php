@@ -41,15 +41,21 @@ class BDC_Admin {
 
 	public static function render_column( $column, $order ) {
 		if ( 'bdc_courier' === $column && $order instanceof WC_Order ) {
-			echo BDC_View::cell( $order ); // phpcs:ignore WordPress.Security.EscapeOutput
+			echo BDC_View::cell( $order ) . self::history_seed( $order ); // phpcs:ignore WordPress.Security.EscapeOutput
 		}
+	}
+
+	/** The customer's order count, moved under their name by the script. */
+	private static function history_seed( WC_Order $order ) {
+		$badge = BDC_History::badge( $order );
+		return '' === $badge ? '' : '<template class="bdc-history-seed" data-order="' . esc_attr( $order->get_id() ) . '">' . $badge . '</template>';
 	}
 
 	public static function render_column_classic( $column, $post_id ) {
 		if ( 'bdc_courier' === $column ) {
 			$order = wc_get_order( $post_id );
 			if ( $order instanceof WC_Order ) {
-				echo BDC_View::cell( $order ); // phpcs:ignore WordPress.Security.EscapeOutput
+				echo BDC_View::cell( $order ) . self::history_seed( $order ); // phpcs:ignore WordPress.Security.EscapeOutput
 			}
 		}
 	}
@@ -58,6 +64,7 @@ class BDC_Admin {
 		foreach ( array( 'shop_order', function_exists( 'wc_get_page_screen_id' ) ? wc_get_page_screen_id( 'shop-order' ) : '' ) as $screen ) {
 			if ( $screen ) {
 				add_meta_box( 'bdc-courier', __( 'Courier', 'bd-courier' ), array( __CLASS__, 'render_meta_box' ), $screen, 'side', 'high' );
+				add_meta_box( 'bdc-history', __( 'Customer history', 'bd-courier' ), array( __CLASS__, 'render_history_box' ), $screen, 'normal', 'default' );
 			}
 		}
 	}
@@ -76,6 +83,13 @@ class BDC_Admin {
 			echo BDC_View::history( $shipment ); // phpcs:ignore WordPress.Security.EscapeOutput
 		}
 		echo '</div>';
+	}
+
+	public static function render_history_box( $post_or_order ) {
+		$order = $post_or_order instanceof WC_Order ? $post_or_order : wc_get_order( $post_or_order->ID );
+		if ( $order instanceof WC_Order ) {
+			echo BDC_History::render( $order, 20 ); // phpcs:ignore WordPress.Security.EscapeOutput
+		}
 	}
 
 	public static function assets() {
@@ -139,6 +153,8 @@ class BDC_Admin {
 					'checking'     => __( 'Checking…', 'bd-courier' ),
 					'checkAgain'   => __( 'Check again', 'bd-courier' ),
 					'checkRecord'  => __( 'Check customer record', 'bd-courier' ),
+					'customerHistory' => __( 'Customer history', 'bd-courier' ),
+					'testAccount'  => __( 'Pathao test account filled in. Click "Save and test connection".', 'bd-courier' ),
 					'chooseLogo'   => __( 'Choose a logo', 'bd-courier' ),
 					'useLogo'      => __( 'Use this logo', 'bd-courier' ),
 				),
