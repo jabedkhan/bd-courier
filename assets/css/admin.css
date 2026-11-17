@@ -3940,3 +3940,27 @@ td.column-bdc_courier .bdc-consignment {
 		width: 19% !important;
 	}
 }
+
+/* Phone number inside the Billing column, under the address */
+.column-billing_address .bdc-order-phone--billing {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	width: fit-content;
+	margin: 3px 0 1px;
+	color: var(--bdc-ink);
+	font-size: 12px;
+	font-weight: 600;
+}
+
+.column-billing_address .bdc-order-phone--billing::before {
+	content: "\f525";
+	font-family: dashicons;
+	font-size: 14px;
+	font-weight: 400;
+	color: var(--bdc-muted);
+}
+
+.column-billing_address .bdc-order-phone--billing + .description {
+	display: block;
+}

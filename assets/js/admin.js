@@ -659,6 +659,23 @@
 		} );
 	} );
 
+	// The phone number belongs with the address: move it into the Billing column when it is shown.
+	$( function () {
+		$( '.column-order_number .bdc-order-phone' ).each( function () {
+			var $billing = $( this ).closest( 'tr' ).find( 'td.column-billing_address' );
+
+			if ( $billing.length && ! $billing.hasClass( 'hidden' ) && $billing.is( ':visible' ) ) {
+				var $via = $billing.children( '.description' ).first();
+				$( this ).addClass( 'bdc-order-phone--billing' );
+				if ( $via.length ) {
+					$via.before( this );
+				} else {
+					$billing.append( this );
+				}
+			}
+		} );
+	} );
+
 	$( document ).on( 'click', '.bdc-history-badge', function ( event ) {
 		event.preventDefault();
 		event.stopPropagation();
