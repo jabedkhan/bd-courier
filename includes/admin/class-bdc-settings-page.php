@@ -542,7 +542,7 @@ class BDC_Settings_Page {
 			<?php self::row_close(); ?>
 
 			<?php self::row_open( __( 'Default note for the rider', 'bd-courier' ), 'bdc-pathao-note' ); ?>
-				<textarea id="bdc-pathao-note" name="bdc[default_note]" rows="2" class="bdc-wide" placeholder="<?php esc_attr_e( 'For example: Call the customer before delivery. Handle with care.', 'bd-courier' ); ?>"><?php echo esc_textarea( $settings['default_note'] ); ?></textarea>
+				<textarea id="bdc-pathao-note" name="bdc[default_note]" rows="2" class="bdc-note" placeholder="<?php esc_attr_e( 'For example: Call the customer before delivery. Handle with care.', 'bd-courier' ); ?>"><?php echo esc_textarea( $settings['default_note'] ); ?></textarea>
 			<?php self::row_close( __( 'Added to every Pathao parcel. If the order has a private note, it is added after this one. You can still edit it before sending.', 'bd-courier' ) ); ?>
 
 		<?php self::panel_close(); ?>
@@ -588,7 +588,7 @@ class BDC_Settings_Page {
 			<?php self::row_close(); ?>
 
 			<?php self::row_open( __( 'Default note for the rider', 'bd-courier' ), 'bdc-steadfast-note' ); ?>
-				<textarea id="bdc-steadfast-note" name="bdc[default_note]" rows="2" class="bdc-wide" placeholder="<?php esc_attr_e( 'For example: Call the customer before delivery. Handle with care.', 'bd-courier' ); ?>"><?php echo esc_textarea( $settings['default_note'] ); ?></textarea>
+				<textarea id="bdc-steadfast-note" name="bdc[default_note]" rows="2" class="bdc-note" placeholder="<?php esc_attr_e( 'For example: Call the customer before delivery. Handle with care.', 'bd-courier' ); ?>"><?php echo esc_textarea( $settings['default_note'] ); ?></textarea>
 			<?php self::row_close( __( 'Added to every Steadfast parcel. If the order has a private note, it is added after this one. You can still edit it before sending.', 'bd-courier' ) ); ?>
 
 			<?php self::row_open( __( 'Customer\'s checkout note', 'bd-courier' ) ); ?>

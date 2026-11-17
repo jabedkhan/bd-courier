@@ -3964,3 +3964,26 @@ td.column-bdc_courier .bdc-consignment {
 .column-billing_address .bdc-order-phone--billing + .description {
 	display: block;
 }
+
+/* Default rider note: same width as the dropdowns above it */
+.bdc-row__field textarea.bdc-note {
+	box-sizing: border-box;
+	width: 320px;
+	max-width: 100%;
+	min-height: 64px;
+	margin: 0;
+	border-color: var(--bdc-line-strong);
+	border-radius: var(--bdc-radius-sm);
+	resize: vertical;
+}
+
+.bdc-row__field textarea.bdc-note:focus {
+	border-color: var(--bdc-accent);
+	box-shadow: 0 0 0 1px var(--bdc-accent);
+}
+
+@media (max-width: 782px) {
+	.bdc-row__field textarea.bdc-note {
+		width: 100%;
+	}
+}
