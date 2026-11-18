@@ -1,0 +1,269 @@
+/* BD Courier chat button on product pages. */
+.bdc-chat {
+	--bdc-chat-accent: #2563eb;
+	position: fixed;
+	right: 20px;
+	bottom: calc(20px + env(safe-area-inset-bottom));
+	z-index: 99990;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	gap: 12px;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.bdc-chat__toggle {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 58px;
+	height: 58px;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: 50%;
+	background: var(--bdc-chat-accent);
+	color: #fff;
+	box-shadow: 0 10px 25px -6px rgba(15, 23, 42, 0.45), 0 2px 6px rgba(15, 23, 42, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+	cursor: pointer;
+	transition: transform 0.2s ease, box-shadow 0.2s ease;
+	-webkit-tap-highlight-color: transparent;
+}
+
+.bdc-chat__toggle:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 14px 30px -6px rgba(15, 23, 42, 0.5), 0 3px 8px rgba(15, 23, 42, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.bdc-chat__toggle:focus-visible {
+	outline: 3px solid rgba(255, 255, 255, 0.9);
+	outline-offset: 2px;
+}
+
+.bdc-chat__toggle svg {
+	display: block;
+	transition: transform 0.25s ease, opacity 0.2s ease;
+}
+
+.bdc-chat__close {
+	position: absolute;
+	opacity: 0;
+	transform: rotate(-90deg) scale(0.6);
+}
+
+.bdc-chat.is-open .bdc-chat__open {
+	opacity: 0;
+	transform: rotate(90deg) scale(0.6);
+}
+
+.bdc-chat.is-open .bdc-chat__close {
+	opacity: 1;
+	transform: none;
+}
+
+/* Gentle pulse ring that invites a first tap. */
+.bdc-chat:not(.is-open):not(.was-opened) .bdc-chat__toggle::after {
+	content: "";
+	position: absolute;
+	width: 58px;
+	height: 58px;
+	border-radius: 50%;
+	box-shadow: 0 0 0 0 var(--bdc-chat-accent);
+	animation: bdc-chat-pulse 2.4s ease-out 1s 3;
+	pointer-events: none;
+}
+
+@keyframes bdc-chat-pulse {
+	0% { box-shadow: 0 0 0 0 var(--bdc-chat-accent); opacity: 0.5; }
+	100% { box-shadow: 0 0 0 16px var(--bdc-chat-accent); opacity: 0; }
+}
+
+/* The two channels slide up out of the button. */
+.bdc-chat__menu {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	gap: 10px;
+	pointer-events: none;
+}
+
+.bdc-chat__link {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	padding: 6px 16px 6px 6px;
+	border-radius: 999px;
+	background: #fff;
+	box-shadow: 0 10px 25px -8px rgba(15, 23, 42, 0.35), 0 2px 6px rgba(15, 23, 42, 0.12);
+	color: #111827;
+	font-size: 15px;
+	font-weight: 600;
+	line-height: 1;
+	text-decoration: none !important;
+	opacity: 0;
+	transform: translateY(12px) scale(0.92);
+	transition: opacity 0.2s ease, transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.2s ease;
+}
+
+.bdc-chat__link:nth-child(2) {
+	transition-delay: 0.04s;
+}
+
+.bdc-chat.is-open .bdc-chat__menu {
+	pointer-events: auto;
+}
+
+.bdc-chat.is-open .bdc-chat__link {
+	opacity: 1;
+	transform: none;
+}
+
+.bdc-chat__link:hover,
+.bdc-chat__link:focus-visible {
+	color: #111827;
+	box-shadow: 0 14px 30px -8px rgba(15, 23, 42, 0.45), 0 2px 6px rgba(15, 23, 42, 0.12);
+	outline: none;
+}
+
+.bdc-chat__icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 40px;
+	height: 40px;
+	border-radius: 50%;
+	color: #fff;
+}
+
+.bdc-chat__icon svg {
+	display: block;
+}
+
+.bdc-chat__link--whatsapp .bdc-chat__icon {
+	background: #25d366;
+}
+
+.bdc-chat__link--messenger .bdc-chat__icon {
+	background: linear-gradient(45deg, #0a7cff 0%, #a033ff 60%, #ff5c87 100%);
+}
+
+/* Phones: a little smaller and closer to the corner. */
+@media (max-width: 600px) {
+	.bdc-chat {
+		right: 14px;
+		bottom: calc(14px + env(safe-area-inset-bottom));
+	}
+
+	.bdc-chat__toggle,
+	.bdc-chat:not(.is-open):not(.was-opened) .bdc-chat__toggle::after {
+		width: 52px;
+		height: 52px;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.bdc-chat__toggle,
+	.bdc-chat__toggle svg,
+	.bdc-chat__link {
+		transition: none;
+	}
+
+	.bdc-chat__toggle::after {
+		animation: none !important;
+	}
+}
+
+/* ---- Refined, smaller look ---- */
+.bdc-chat {
+	gap: 10px;
+}
+
+/* Main button: 50px, soft gradient with a glossy edge. */
+.bdc-chat__toggle {
+	position: relative;
+	width: 50px;
+	height: 50px;
+	background:
+		radial-gradient(120% 120% at 30% 20%, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0) 55%),
+		var(--bdc-chat-accent);
+	box-shadow:
+		0 8px 20px -6px rgba(15, 23, 42, 0.45),
+		0 2px 4px rgba(15, 23, 42, 0.18),
+		inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+
+.bdc-chat__toggle:hover {
+	transform: translateY(-2px) scale(1.03);
+}
+
+.bdc-chat__open {
+	width: 22px;
+	height: 22px;
+}
+
+.bdc-chat__close {
+	width: 18px;
+	height: 18px;
+}
+
+.bdc-chat:not(.is-open):not(.was-opened) .bdc-chat__toggle::after {
+	width: 50px;
+	height: 50px;
+}
+
+/* Choices: compact frosted pills with a hairline edge. */
+.bdc-chat__menu {
+	gap: 8px;
+}
+
+.bdc-chat__link {
+	gap: 8px;
+	padding: 4px 14px 4px 4px;
+	border: 1px solid rgba(15, 23, 42, 0.06);
+	background: rgba(255, 255, 255, 0.92);
+	-webkit-backdrop-filter: blur(10px) saturate(1.4);
+	backdrop-filter: blur(10px) saturate(1.4);
+	box-shadow:
+		0 8px 22px -10px rgba(15, 23, 42, 0.35),
+		0 1px 3px rgba(15, 23, 42, 0.08);
+	font-size: 13.5px;
+	font-weight: 600;
+	letter-spacing: 0.01em;
+}
+
+.bdc-chat__link:hover,
+.bdc-chat__link:focus-visible {
+	transform: translateX(-2px);
+	box-shadow:
+		0 12px 26px -10px rgba(15, 23, 42, 0.4),
+		0 1px 3px rgba(15, 23, 42, 0.1);
+}
+
+.bdc-chat__icon {
+	width: 32px;
+	height: 32px;
+	box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2), 0 2px 6px -2px rgba(15, 23, 42, 0.35);
+}
+
+.bdc-chat__icon svg {
+	width: 18px;
+	height: 18px;
+}
+
+/* Phones: a touch smaller still. */
+@media (max-width: 600px) {
+	.bdc-chat__toggle,
+	.bdc-chat:not(.is-open):not(.was-opened) .bdc-chat__toggle::after {
+		width: 46px;
+		height: 46px;
+	}
+
+	.bdc-chat__link {
+		font-size: 13px;
+	}
+
+	.bdc-chat__icon {
+		width: 30px;
+		height: 30px;
+	}
+}

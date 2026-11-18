@@ -26,6 +26,25 @@ class BDC_Brand {
 		return $id ? (string) wp_get_attachment_image_url( $id, $size ) : '';
 	}
 
+	/** Shapes of the plugin icon: a parcel box on the move. */
+	const ICON_PATHS = '<path d="M12 2.6l6.2 3.4-6.2 3.2-6.2-3.2z"/><path d="M5.5 7l5.9 3.1v7.1l-5.9-3.6z"/><path d="M12.6 10.1l5.9-3.1v6.6l-5.9 3.6z"/><rect x="0.6" y="8.2" width="3.6" height="1.3" rx="0.65"/><rect x="1.6" y="11" width="2.6" height="1.3" rx="0.65"/><rect x="0.6" y="13.8" width="3.6" height="1.3" rx="0.65"/>';
+
+	/** The plugin icon as inline SVG in the current text colour. */
+	public static function icon_svg( $size = 20, $class = '' ) {
+		return sprintf(
+			'<svg class="%1$s" width="%2$d" height="%2$d" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" focusable="false">%3$s</svg>',
+			esc_attr( $class ),
+			(int) $size,
+			self::ICON_PATHS
+		);
+	}
+
+	/** The plugin icon for the admin menu; WordPress recolours it to match the menu. */
+	public static function menu_icon() {
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+		return 'data:image/svg+xml;base64,' . base64_encode( '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><g fill="black">' . self::ICON_PATHS . '</g></svg>' );
+	}
+
 	/**
 	 * Mix a hex colour with black (negative amount) or white (positive), -1 to 1.
 	 */

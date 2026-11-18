@@ -7,7 +7,7 @@ defined( 'ABSPATH' ) || exit;
 class BDC_Ajax {
 
 	public static function init() {
-		foreach ( array( 'form', 'send', 'synced', 'refresh', 'locations', 'score' ) as $action ) {
+		foreach ( array( 'form', 'send', 'synced', 'refresh', 'locations', 'score', 'steadfast_account' ) as $action ) {
 			add_action( 'wp_ajax_bdc_' . $action, array( __CLASS__, $action ) );
 		}
 	}
@@ -292,6 +292,34 @@ class BDC_Ajax {
 				),
 			)
 		);
+	}
+
+	/** Steadfast account card on the Reports page: balance and recent payments. */
+	public static function steadfast_account() {
+		self::guard();
+		$courier = BDC_Couriers::get( 'steadfast' );
+		if ( ! $courier || ! $courier->is_active() ) {
+			wp_send_json_error( array( 'message' => __( 'Steadfast is turned off or not connected.', 'bd-courier' ) ), 400 );
+		}
+
+		$force   = ! empty( $_POST['force'] ); // phpcs:ignore WordPress.Security.NonceVerification
+		$account = $force ? false : get_transient( 'bdc_steadfast_account' );
+
+		if ( ! is_array( $account ) ) {
+			$balance  = $courier->balance();
+			$payments = $courier->payments();
+			if ( is_wp_error( $balance ) ) {
+				wp_send_json_error( array( 'message' => $balance->get_error_message() ), 400 );
+			}
+			$account = array(
+				'balance'    => $balance,
+				'payments'   => is_wp_error( $payments ) ? array() : $payments,
+				'checked_at' => time(),
+			);
+			set_transient( 'bdc_steadfast_account', $account, 10 * MINUTE_IN_SECONDS );
+		}
+
+		wp_send_json_success( array( 'html' => BDC_Reports::steadfast_account_html( $account ) ) );
 	}
 
 	/** Pathao zones of a city, or areas of a zone. */

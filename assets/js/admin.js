@@ -1097,4 +1097,87 @@
 			} ).observe( document.body, { childList: true, subtree: true } );
 		}
 	} );
+
+	/* ---- Orders on phones: a filter button shows or hides the filter card ---- */
+
+	$( function () {
+		var $list = $( 'body.post-type-shop_order.edit-php, body.woocommerce_page_wc-orders' );
+		var $bar  = $list.find( '.tablenav.top' ).first();
+		var $box  = $list.find( '.search-box' ).first();
+		if ( ! $bar.length || ! $box.length ) {
+			return;
+		}
+
+		var label   = bdcText( 'filters', 'Filters' );
+		var $toggle = $( '<button type="button" class="bdc-filter-toggle" aria-expanded="false"></button>' )
+			.attr( { 'aria-label': label, title: label, 'aria-controls': 'bdc-orders-filters' } )
+			.html( '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 5h18M6 12h12M10 19h4"/></svg>' );
+
+		$bar.attr( 'id', 'bdc-orders-filters' ).addClass( 'bdc-collapsible' );
+		$box.find( 'input[type="search"]' ).first().after( $toggle );
+
+		// Show a dot on the button while a date, channel or customer filter is applied.
+		var active = $bar.find( '.actions:not(.bulkactions) select' ).filter( function () {
+			// A filter is in use when something other than its first ("All …") choice is picked.
+			return this.selectedIndex > 0 || ( $( this ).hasClass( 'wc-customer-search' ) && !! $( this ).val() );
+		} ).length;
+		$toggle.toggleClass( 'has-active', active > 0 );
+
+		$toggle.on( 'click', function ( event ) {
+			event.preventDefault();
+			var open = ! $bar.hasClass( 'is-open' );
+			$bar.toggleClass( 'is-open', open );
+			$toggle.attr( 'aria-expanded', open ? 'true' : 'false' );
+		} );
+	} );
+
+	/* ---- Reports: the Steadfast account card loads after the page ---- */
+
+	function loadSteadfastAccount( force ) {
+		var $card = $( '.bdc-sf-account' );
+		if ( ! $card.length ) {
+			return;
+		}
+		var $button = $card.find( '.bdc-sf-account__refresh' ).prop( 'disabled', true );
+		$card.addClass( 'is-loading' );
+		post( 'steadfast_account', { force: force ? 1 : 0 } )
+			.done( function ( response ) {
+				$card.find( '.bdc-sf-account__body' ).html( response.data.html );
+			} )
+			.fail( function ( xhr ) {
+				$card.find( '.bdc-sf-account__body' ).empty().append( $( '<p class="bdc-score__error"></p>' ).text( errorOf( xhr ).message ) );
+			} )
+			.always( function () {
+				$card.removeClass( 'is-loading' );
+				$button.prop( 'disabled', false );
+			} );
+	}
+
+	$( function () {
+		loadSteadfastAccount( false );
+	} );
+	$( document ).on( 'click', '.bdc-sf-account__refresh', function () {
+		loadSteadfastAccount( true );
+	} );
+
+	/* ---- Date ranges: a "From" / "To" hint while a date is empty (phones show a blank box) ---- */
+
+	$( function () {
+		$( '.bdc-daterange input[type="date"]' ).each( function ( index ) {
+			var $input = $( this );
+			if ( $input.parent().hasClass( 'bdc-date' ) ) {
+				return;
+			}
+			var isFrom = 'from' === $input.attr( 'name' ) || 0 === $input.closest( '.bdc-daterange' ).find( 'input[type="date"]' ).index( this );
+			var $wrap  = $( '<span class="bdc-date"></span>' );
+			$input.wrap( $wrap );
+			$input.after( $( '<span class="bdc-date__hint" aria-hidden="true"></span>' ).text( isFrom ? bdcText( 'dateFrom', 'From' ) : bdcText( 'dateTo', 'To' ) ) );
+
+			var sync = function () {
+				$input.parent().toggleClass( 'is-empty', ! $input.val() );
+			};
+			$input.on( 'input change blur', sync );
+			sync();
+		} );
+	} );
 } )( jQuery );

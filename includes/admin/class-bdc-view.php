@@ -31,7 +31,7 @@ class BDC_View {
 		$html  = '<div class="bdc-header"><div class="bdc-header__brand">';
 		$html .= $logo
 			? '<img src="' . esc_url( $logo ) . '" alt="">'
-			: '<span class="bdc-header__mark dashicons dashicons-car" aria-hidden="true"></span>';
+			: '<span class="bdc-header__mark" aria-hidden="true">' . BDC_Brand::icon_svg( 20 ) . '</span>';
 		$html .= '<span class="bdc-header__name">' . esc_html( BDC_Brand::name() ) . '</span></div>';
 		$html .= '<nav class="bdc-header__nav" aria-label="' . esc_attr( BDC_Brand::name() ) . '">';
 

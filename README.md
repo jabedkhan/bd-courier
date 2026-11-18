@@ -165,6 +165,26 @@ Private notes are WooCommerce's own private order notes — only your team sees 
 
 Neither Pathao nor Steadfast lets other software change a parcel once it is booked, so BD Courier has no edit button. Make changes in the courier's own merchant panel; the **track** button on a parcel opens it there when there is no public tracking link.
 
+### Simple checkout (Bangladesh)
+
+**BD Courier → Settings → Checkout** turns WooCommerce's long checkout into a short one: **name, mobile number and address**, plus a **delivery area** with its charge:
+
+- ঢাকা সিটির ভেতরে (inside Dhaka) — ৳70
+- ঢাকা সাব-সিটি (sub Dhaka) — ৳100
+- ঢাকা সিটির বাহিরে (outside Dhaka) — ৳120
+
+Every label, area name and charge can be changed. The mobile number must be a valid Bangladeshi number (01XXXXXXXXX). Country is set to Bangladesh, email is not asked, and the optional order notes box can be kept or removed. The chosen area is saved on the order and shown under the billing address. No WooCommerce shipping zones are needed. Works with the classic WooCommerce checkout; switch off other checkout-field plugins when you turn it on.
+
+### Chat buttons on product pages
+
+**BD Courier → Settings → Chat buttons** adds one floating chat button to the bottom-right corner of every product page. Customers tap it and choose **Messenger** or **WhatsApp**. Their message is already filled in with the product name and its link, so you know straight away which product they mean.
+
+- WhatsApp: enter your number with the country code (a local `01…` number is changed to `8801…` for you).
+- Messenger: enter your Facebook Page username, or paste the Page or m.me link.
+- The message text can be changed; `{product}` becomes the product name and `{link}` the page link.
+
+WhatsApp always fills in the message. Messenger fills it in on most devices; where Facebook does not, the chat still opens with your Page.
+
 ### Shipments page
 
 **BD Courier → Shipments** lists every parcel from both couriers:

@@ -218,6 +218,66 @@ class BDC_Reports {
 		return $report;
 	}
 
+	/**
+	 * Inside of the Steadfast account card: live balance from Steadfast, and its
+	 * recent payments to the shop when Steadfast shares them.
+	 */
+	public static function steadfast_account_html( array $account ) {
+		ob_start();
+		?>
+		<div class="bdc-sf-account__stats">
+			<?php
+			self::stat( 'money-alt', __( 'Current balance', 'bd-courier' ), BDC_View::money( (float) $account['balance'] ), __( 'held by Steadfast for your shop', 'bd-courier' ), 'good' );
+			if ( $account['payments'] ) {
+				$last = $account['payments'][0];
+				self::stat( 'yes-alt', __( 'Last payment', 'bd-courier' ), BDC_View::money( (float) $last['amount'] ), $last['date'] ? $last['date'] : __( 'from Steadfast', 'bd-courier' ) );
+			}
+			?>
+		</div>
+
+		<?php if ( $account['payments'] ) : ?>
+			<div class="bdc-table-scroll">
+				<table class="bdc-reports__table bdc-sf-account__payments">
+					<thead>
+						<tr>
+							<th><?php esc_html_e( 'Payment', 'bd-courier' ); ?></th>
+							<th><?php esc_html_e( 'Date', 'bd-courier' ); ?></th>
+							<th><?php esc_html_e( 'Status', 'bd-courier' ); ?></th>
+							<th class="bdc-col-money"><?php esc_html_e( 'Amount', 'bd-courier' ); ?></th>
+						</tr>
+					</thead>
+					<tbody>
+						<?php foreach ( $account['payments'] as $payment ) : ?>
+							<tr>
+								<td><?php echo esc_html( '' !== $payment['id'] ? '#' . $payment['id'] : '—' ); ?></td>
+								<td><?php echo esc_html( '' !== $payment['date'] ? $payment['date'] : '—' ); ?></td>
+								<td><?php echo esc_html( '' !== $payment['status'] ? ucwords( str_replace( '_', ' ', $payment['status'] ) ) : '—' ); ?></td>
+								<td class="bdc-col-money"><?php echo esc_html( BDC_View::money( (float) $payment['amount'] ) ); ?></td>
+							</tr>
+						<?php endforeach; ?>
+					</tbody>
+				</table>
+			</div>
+		<?php endif; ?>
+
+		<p class="bdc-sf-account__note">
+			<?php
+			echo esc_html(
+				sprintf(
+					/* translators: %s: time ago */
+					__( 'Live from Steadfast, checked %s ago.', 'bd-courier' ),
+					human_time_diff( (int) $account['checked_at'] )
+				)
+			);
+			if ( ! $account['payments'] ) {
+				echo ' ' . esc_html__( 'Steadfast does not share the payment history for this account through its API; see it in the Steadfast merchant panel.', 'bd-courier' );
+			}
+			?>
+		</p>
+		<?php
+		return ob_get_clean();
+	}
+
 	/** Steadfast first, then Pathao, as on the comparison table. */
 	private static function ordered( array $couriers ) {
 		$sorted = array();
@@ -295,6 +355,27 @@ class BDC_Reports {
 				);
 				?>
 			</p>
+
+			<?php
+			$steadfast = BDC_Couriers::get( 'steadfast' );
+			if ( $steadfast && $steadfast->is_active() ) :
+				?>
+				<section class="bdc-sf-account" aria-live="polite">
+					<header class="bdc-sf-account__head">
+						<span class="bdc-sf-account__title">
+							<?php echo BDC_View::badge( $steadfast ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+							<?php esc_html_e( 'Your Steadfast account', 'bd-courier' ); ?>
+						</span>
+						<button type="button" class="button bdc-sf-account__refresh"><span class="dashicons dashicons-update" aria-hidden="true"></span><?php esc_html_e( 'Refresh', 'bd-courier' ); ?></button>
+					</header>
+					<div class="bdc-sf-account__body">
+						<div class="bdc-score-skeleton" aria-busy="true">
+							<span class="bdc-skeleton__field bdc-score-skeleton__bar"></span>
+							<span class="bdc-skeleton__field bdc-score-skeleton__bar bdc-score-skeleton__bar--short"></span>
+						</div>
+					</div>
+				</section>
+			<?php endif; ?>
 
 			<?php if ( ! $total['sent'] ) : ?>
 				<div class="bdc-reports__empty">

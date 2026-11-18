@@ -69,6 +69,64 @@ class BDC_Steadfast extends BDC_Courier {
 		return (string) $response['body']['current_balance'];
 	}
 
+	/**
+	 * Recent payments from Steadfast to this shop. Steadfast does not publish this
+	 * part of its API, so anything unexpected is treated as "not available".
+	 *
+	 * @return array|WP_Error List of array( id, amount, date, status ).
+	 */
+	public function payments() {
+		$response = $this->api( 'GET', '/payments' );
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+		if ( $response['code'] >= 300 ) {
+			return new WP_Error( 'bdc_payments', __( 'Steadfast does not share payments for this account.', 'bd-courier' ) );
+		}
+
+		$body = $response['body'];
+		$list = array();
+		foreach ( array( 'data', 'payments', 'results' ) as $key ) {
+			if ( isset( $body[ $key ] ) && is_array( $body[ $key ] ) ) {
+				$list = $body[ $key ];
+				break;
+			}
+		}
+		if ( isset( $list['data'] ) && is_array( $list['data'] ) ) {
+			$list = $list['data']; // Paginated answers keep the rows one level deeper.
+		}
+
+		$rows = array();
+		foreach ( $list as $item ) {
+			if ( ! is_array( $item ) ) {
+				continue;
+			}
+			$amount = self::pick_number( $item, array( 'amount', 'total_amount', 'paid_amount', 'payment_amount', 'net_amount' ) );
+			if ( null === $amount ) {
+				continue;
+			}
+			$date = '';
+			foreach ( array( 'created_at', 'payment_date', 'date', 'updated_at' ) as $key ) {
+				if ( ! empty( $item[ $key ] ) && is_string( $item[ $key ] ) ) {
+					$date = sanitize_text_field( $item[ $key ] );
+					break;
+				}
+			}
+			$rows[] = array(
+				'id'     => isset( $item['id'] ) && is_scalar( $item['id'] ) ? sanitize_text_field( (string) $item['id'] ) : '',
+				'amount' => $amount,
+				'date'   => $date,
+				'status' => isset( $item['status'] ) && is_scalar( $item['status'] ) ? sanitize_text_field( (string) $item['status'] ) : '',
+			);
+		}
+
+		if ( ! $rows ) {
+			return new WP_Error( 'bdc_payments', __( 'Steadfast does not share payments for this account.', 'bd-courier' ) );
+		}
+
+		return array_slice( $rows, 0, 10 );
+	}
+
 	/* ---- Send form ---- */
 
 	public function form_fields( WC_Order $order ) {

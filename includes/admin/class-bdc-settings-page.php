@@ -39,7 +39,7 @@ class BDC_Settings_Page {
 	public static function menu() {
 		$name = BDC_Brand::name();
 
-		add_menu_page( $name, $name, 'manage_woocommerce', BDC_Shipments::SLUG, array( 'BDC_Shipments', 'render' ), 'dashicons-car', 56 );
+		add_menu_page( $name, $name, 'manage_woocommerce', BDC_Shipments::SLUG, array( 'BDC_Shipments', 'render' ), BDC_Brand::menu_icon(), 56 );
 
 		BDC_Shipments::$hook = add_submenu_page(
 			BDC_Shipments::SLUG,
@@ -78,6 +78,8 @@ class BDC_Settings_Page {
 		return array(
 			'general'   => __( 'General', 'bd-courier' ),
 			'branding'  => __( 'Branding', 'bd-courier' ),
+			'checkout'  => __( 'Checkout', 'bd-courier' ),
+			'chat'      => __( 'Chat buttons', 'bd-courier' ),
 			'pathao'    => 'Pathao',
 			'steadfast' => 'Steadfast',
 		);
@@ -102,7 +104,33 @@ class BDC_Settings_Page {
 			return isset( $posted[ $key ] ) && is_scalar( $posted[ $key ] ) ? trim( sanitize_text_field( (string) $posted[ $key ] ) ) : '';
 		};
 
-		if ( 'branding' === $tab ) {
+		if ( 'checkout' === $tab ) {
+			$values = array(
+				'enabled'     => isset( $posted['enabled'] ) ? 'yes' : 'no',
+				'order_notes' => isset( $posted['order_notes'] ) ? 'yes' : 'no',
+			);
+			foreach ( array( 'heading_details', 'label_name', 'label_phone', 'label_address', 'label_area', 'label_notes', 'heading_order', 'button_text', 'area_inside', 'area_sub', 'area_outside', 'time_inside', 'time_sub', 'time_outside', 'help_text', 'thankyou_title' ) as $key ) {
+				$values[ $key ] = $text( $key );
+			}
+			foreach ( array( 'trust_points', 'thankyou_text', 'thankyou_steps' ) as $key ) {
+				$values[ $key ] = isset( $posted[ $key ] ) && is_scalar( $posted[ $key ] ) ? trim( sanitize_textarea_field( (string) $posted[ $key ] ) ) : '';
+			}
+			foreach ( array( 'charge_inside', 'charge_sub', 'charge_outside' ) as $key ) {
+				$values[ $key ] = (string) max( 0, (float) $text( $key ) );
+			}
+			BDC_Settings::update_section( 'checkout', $values );
+		} elseif ( 'chat' === $tab ) {
+			$message = isset( $posted['message'] ) && is_scalar( $posted['message'] ) ? trim( sanitize_textarea_field( (string) $posted['message'] ) ) : '';
+			BDC_Settings::update_section(
+				'chat',
+				array(
+					'enabled'   => isset( $posted['enabled'] ) ? 'yes' : 'no',
+					'whatsapp'  => BDC_Chat::clean_whatsapp( $text( 'whatsapp' ) ),
+					'messenger' => BDC_Chat::clean_messenger( $text( 'messenger' ) ),
+					'message'   => $message,
+				)
+			);
+		} elseif ( 'branding' === $tab ) {
 			$logo_id = absint( $text( 'logo_id' ) );
 
 			BDC_Settings::update_section(
@@ -228,6 +256,19 @@ class BDC_Settings_Page {
 			<nav class="bdc-tabs" aria-label="<?php esc_attr_e( 'Settings sections', 'bd-courier' ); ?>">
 				<?php foreach ( self::tabs() as $key => $label ) : ?>
 					<a href="<?php echo esc_url( self::url( $key ) ); ?>" class="<?php echo $key === $tab ? 'is-current' : ''; ?>" <?php echo $key === $tab ? 'aria-current="page"' : ''; ?>>
+						<?php
+						$tab_icons = array(
+							'general'   => '<path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/>',
+							'branding'  => '<circle cx="13.5" cy="6.5" r="1.2"/><circle cx="17.5" cy="10.5" r="1.2"/><circle cx="8.5" cy="7.5" r="1.2"/><circle cx="6.5" cy="12.5" r="1.2"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.93 0 1.65-.75 1.65-1.69 0-.44-.18-.84-.44-1.13-.29-.29-.44-.65-.44-1.13a1.64 1.64 0 0 1 1.67-1.67h2c3.05 0 5.56-2.5 5.56-5.55C21.97 6.01 17.46 2 12 2Z"/>',
+							'checkout'  => '<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18M16 10a4 4 0 0 1-8 0"/>',
+							'chat'      => '<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M8 12h.01M12 12h.01M16 12h.01"/>',
+							'pathao'    => '<path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/>',
+							'steadfast' => '<path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5M12 22V12"/>',
+						);
+						if ( isset( $tab_icons[ $key ] ) ) {
+							echo '<svg class="bdc-tab-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' . $tab_icons[ $key ] . '</svg>'; // phpcs:ignore WordPress.Security.EscapeOutput -- fixed SVG paths above.
+						}
+						?>
 						<?php echo esc_html( $label ); ?>
 						<?php
 						$courier = BDC_Couriers::get( $key );
@@ -251,6 +292,10 @@ class BDC_Settings_Page {
 					self::steadfast_tab();
 				} elseif ( 'branding' === $tab ) {
 					self::branding_tab();
+				} elseif ( 'chat' === $tab ) {
+					self::chat_tab();
+				} elseif ( 'checkout' === $tab ) {
+					self::checkout_tab();
 				} else {
 					self::general_tab();
 				}
@@ -463,7 +508,7 @@ class BDC_Settings_Page {
 
 		<?php self::panel_close(); ?>
 
-		<?php self::panel_open( __( 'On invoices and parcel labels', 'bd-courier' ), __( 'Your shop details as customers and riders see them on paper. Empty fields use the value shown in grey.', 'bd-courier' ) ); ?>
+		<?php self::panel_open( __( 'On invoices and parcel labels', 'bd-courier' ), __( 'Your shop details as customers and riders see them on paper. Empty fields use the value shown in grey.', 'bd-courier' ), '', '', 'grid' ); ?>
 
 			<?php self::row_open( __( 'Shop name', 'bd-courier' ), 'bdc-business-name' ); ?>
 				<input type="text" id="bdc-business-name" name="bdc[business_name]" value="<?php echo esc_attr( $print['business_name'] ); ?>" placeholder="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>">
@@ -473,13 +518,140 @@ class BDC_Settings_Page {
 				<input type="text" id="bdc-business-phone" name="bdc[business_phone]" value="<?php echo esc_attr( $print['business_phone'] ); ?>">
 			<?php self::row_close(); ?>
 
-			<?php self::row_open( __( 'Address', 'bd-courier' ), 'bdc-business-address' ); ?>
+			<?php self::row_open( __( 'Address', 'bd-courier' ), 'bdc-business-address', true ); ?>
 				<input type="text" id="bdc-business-address" class="bdc-wide" name="bdc[business_address]" value="<?php echo esc_attr( $print['business_address'] ); ?>" placeholder="<?php echo esc_attr( '' === $print['business_address'] ? $business['address'] : '' ); ?>">
 			<?php self::row_close(); ?>
 
-			<?php self::row_open( __( 'Invoice footer', 'bd-courier' ), 'bdc-footer-note' ); ?>
+			<?php self::row_open( __( 'Invoice footer', 'bd-courier' ), 'bdc-footer-note', true ); ?>
 				<input type="text" id="bdc-footer-note" class="bdc-wide" name="bdc[footer_note]" value="<?php echo esc_attr( $print['footer_note'] ); ?>">
 			<?php self::row_close( __( 'For example a thank-you line or your return policy.', 'bd-courier' ) ); ?>
+
+		<?php self::panel_close(); ?>
+
+		<?php
+		self::buttons( false );
+	}
+
+	/* ---- Checkout ---- */
+
+	private static function checkout_tab() {
+		$c        = BDC_Settings::section( 'checkout' );
+		$defaults = BDC_Settings::defaults()['checkout'];
+		$currency = function_exists( 'get_woocommerce_currency_symbol' ) ? html_entity_decode( get_woocommerce_currency_symbol() ) : '৳';
+		?>
+		<?php self::panel_open( __( 'Simple checkout', 'bd-courier' ), __( 'A short checkout made for Bangladesh: name, mobile number and address, plus the delivery area with its charge. Country is set to Bangladesh and email is not asked.', 'bd-courier' ) ); ?>
+
+			<?php self::row_open( __( 'Use simple checkout', 'bd-courier' ), 'bdc-checkout-enabled' ); ?>
+				<label class="bdc-check">
+					<input type="checkbox" id="bdc-checkout-enabled" name="bdc[enabled]" value="yes" <?php checked( 'yes', $c['enabled'] ); ?>>
+					<?php esc_html_e( 'Replace the checkout fields and delivery charges with the ones below', 'bd-courier' ); ?>
+				</label>
+			<?php self::row_close( __( 'Turn off any other checkout-field plugin (such as Checkout Field Editor) after switching this on, so the two do not fight. Works with the classic WooCommerce checkout.', 'bd-courier' ) ); ?>
+
+			<?php self::row_open( __( 'Order notes', 'bd-courier' ), 'bdc-checkout-notes' ); ?>
+				<label class="bdc-check">
+					<input type="checkbox" id="bdc-checkout-notes" name="bdc[order_notes]" value="yes" <?php checked( 'yes', $c['order_notes'] ); ?>>
+					<?php esc_html_e( 'Keep the optional "Order notes" box', 'bd-courier' ); ?>
+				</label>
+			<?php self::row_close(); ?>
+
+		<?php self::panel_close(); ?>
+
+		<?php self::panel_open( __( 'Field labels', 'bd-courier' ), __( 'What customers read above each field.', 'bd-courier' ), '', '', 'grid' ); ?>
+			<?php
+			foreach ( array(
+				'heading_details' => __( 'Details heading', 'bd-courier' ),
+				'label_name'      => __( 'Name', 'bd-courier' ),
+				'label_phone'     => __( 'Mobile number', 'bd-courier' ),
+				'label_address'   => __( 'Address', 'bd-courier' ),
+				'label_area'      => __( 'Delivery area', 'bd-courier' ),
+				'label_notes'     => __( 'Order notes', 'bd-courier' ),
+				'heading_order'   => __( 'Order summary heading', 'bd-courier' ),
+				'button_text'     => __( 'Order button', 'bd-courier' ),
+			) as $key => $title ) :
+				?>
+				<?php self::row_open( $title, 'bdc-checkout-' . $key ); ?>
+					<input type="text" id="bdc-checkout-<?php echo esc_attr( $key ); ?>" name="bdc[<?php echo esc_attr( $key ); ?>]" value="<?php echo esc_attr( $c[ $key ] ); ?>" placeholder="<?php echo esc_attr( $defaults[ $key ] ); ?>">
+				<?php self::row_close(); ?>
+			<?php endforeach; ?>
+		<?php self::panel_close(); ?>
+
+		<?php self::panel_open( __( 'Delivery areas and charges', 'bd-courier' ), __( 'Customers choose one; its charge is added to the order total. Each area shows its name, charge and delivery time.', 'bd-courier' ), '', '', 'grid' ); ?>
+			<?php
+			foreach ( array(
+				'inside'  => __( 'Inside Dhaka', 'bd-courier' ),
+				'sub'     => __( 'Sub Dhaka', 'bd-courier' ),
+				'outside' => __( 'Outside Dhaka', 'bd-courier' ),
+			) as $key => $title ) :
+				?>
+				<?php self::row_open( $title, 'bdc-checkout-area-' . $key ); ?>
+					<span class="bdc-inline">
+						<input type="text" id="bdc-checkout-area-<?php echo esc_attr( $key ); ?>" name="bdc[area_<?php echo esc_attr( $key ); ?>]" value="<?php echo esc_attr( $c[ 'area_' . $key ] ); ?>" placeholder="<?php echo esc_attr( $defaults[ 'area_' . $key ] ); ?>" aria-label="<?php esc_attr_e( 'Name shown to customers', 'bd-courier' ); ?>">
+						<input type="number" name="bdc[charge_<?php echo esc_attr( $key ); ?>]" value="<?php echo esc_attr( $c[ 'charge_' . $key ] ); ?>" min="0" step="1" aria-label="<?php esc_attr_e( 'Delivery charge', 'bd-courier' ); ?>">
+						<span class="bdc-muted"><?php echo esc_html( $currency ); ?></span>
+						<input type="text" name="bdc[time_<?php echo esc_attr( $key ); ?>]" value="<?php echo esc_attr( $c[ 'time_' . $key ] ); ?>" placeholder="<?php echo esc_attr( $defaults[ 'time_' . $key ] ); ?>" style="width:120px" aria-label="<?php esc_attr_e( 'Delivery time', 'bd-courier' ); ?>">
+					</span>
+				<?php self::row_close(); ?>
+			<?php endforeach; ?>
+		<?php self::panel_close(); ?>
+
+		<?php self::panel_open( __( 'Beside the delivery areas', 'bd-courier' ), __( 'Short reassurance under the delivery areas on the checkout page.', 'bd-courier' ), '', '', 'grid' ); ?>
+
+			<?php self::row_open( __( 'Trust points', 'bd-courier' ), 'bdc-checkout-trust', true ); ?>
+				<textarea id="bdc-checkout-trust" name="bdc[trust_points]" rows="3" class="bdc-note bdc-wide" placeholder="<?php echo esc_attr( $defaults['trust_points'] ); ?>"><?php echo esc_textarea( $c['trust_points'] ); ?></textarea>
+			<?php self::row_close( __( 'One point per line. Leave empty to use the points shown in grey.', 'bd-courier' ) ); ?>
+
+			<?php self::row_open( __( 'Help line', 'bd-courier' ), 'bdc-checkout-help', true ); ?>
+				<input type="text" id="bdc-checkout-help" class="bdc-wide" name="bdc[help_text]" value="<?php echo esc_attr( $c['help_text'] ); ?>" placeholder="<?php echo esc_attr( $defaults['help_text'] ); ?>">
+			<?php self::row_close( __( 'Shown with WhatsApp and Messenger buttons when they are filled in under Chat buttons.', 'bd-courier' ) ); ?>
+
+		<?php self::panel_close(); ?>
+
+		<?php self::panel_open( __( 'Thank-you page', 'bd-courier' ), __( 'What customers see right after placing the order.', 'bd-courier' ), '', '', 'grid' ); ?>
+
+			<?php self::row_open( __( 'Title', 'bd-courier' ), 'bdc-thankyou-title', true ); ?>
+				<input type="text" id="bdc-thankyou-title" class="bdc-wide" name="bdc[thankyou_title]" value="<?php echo esc_attr( $c['thankyou_title'] ); ?>" placeholder="<?php echo esc_attr( $defaults['thankyou_title'] ); ?>">
+			<?php self::row_close(); ?>
+
+			<?php self::row_open( __( 'Message', 'bd-courier' ), 'bdc-thankyou-text', true ); ?>
+				<textarea id="bdc-thankyou-text" name="bdc[thankyou_text]" rows="2" class="bdc-note bdc-wide" placeholder="<?php echo esc_attr( $defaults['thankyou_text'] ); ?>"><?php echo esc_textarea( $c['thankyou_text'] ); ?></textarea>
+			<?php self::row_close(); ?>
+
+			<?php self::row_open( __( 'What happens next', 'bd-courier' ), 'bdc-thankyou-steps', true ); ?>
+				<textarea id="bdc-thankyou-steps" name="bdc[thankyou_steps]" rows="3" class="bdc-note bdc-wide" placeholder="<?php echo esc_attr( $defaults['thankyou_steps'] ); ?>"><?php echo esc_textarea( $c['thankyou_steps'] ); ?></textarea>
+			<?php self::row_close( __( 'One step per line, shown as numbered steps.', 'bd-courier' ) ); ?>
+
+		<?php self::panel_close(); ?>
+
+		<?php
+		self::buttons( false );
+	}
+
+	/* ---- Chat buttons ---- */
+
+	private static function chat_tab() {
+		$chat = BDC_Settings::section( 'chat' );
+		?>
+		<?php self::panel_open( __( 'Chat buttons on product pages', 'bd-courier' ), __( 'A small chat button in the bottom-right corner of every product page. Customers pick Messenger or WhatsApp, and their message already says which product they are looking at.', 'bd-courier' ), '', '', 'grid' ); ?>
+
+			<?php self::row_open( __( 'Show chat buttons', 'bd-courier' ), 'bdc-chat-enabled', true ); ?>
+				<label class="bdc-check">
+					<input type="checkbox" id="bdc-chat-enabled" name="bdc[enabled]" value="yes" <?php checked( 'yes', $chat['enabled'] ); ?>>
+					<?php esc_html_e( 'Show the chat button on product pages', 'bd-courier' ); ?>
+				</label>
+			<?php self::row_close( __( 'Only the channels you fill in below are shown.', 'bd-courier' ) ); ?>
+
+			<?php self::row_open( 'WhatsApp', 'bdc-chat-whatsapp' ); ?>
+				<input type="text" id="bdc-chat-whatsapp" name="bdc[whatsapp]" value="<?php echo esc_attr( $chat['whatsapp'] ); ?>" placeholder="8801XXXXXXXXX" inputmode="tel" autocomplete="off">
+			<?php self::row_close( __( 'Your WhatsApp number with the country code, for example 8801712345678. A number starting with 01 is changed to 8801 for you.', 'bd-courier' ) ); ?>
+
+			<?php self::row_open( 'Messenger', 'bdc-chat-messenger' ); ?>
+				<input type="text" id="bdc-chat-messenger" name="bdc[messenger]" value="<?php echo esc_attr( $chat['messenger'] ); ?>" placeholder="yourshop" autocomplete="off">
+			<?php self::row_close( __( 'Your Facebook Page username, as in facebook.com/yourshop. You can also paste the full Page or m.me link.', 'bd-courier' ) ); ?>
+
+			<?php self::row_open( __( 'Message', 'bd-courier' ), 'bdc-chat-message', true ); ?>
+				<textarea id="bdc-chat-message" name="bdc[message]" rows="3" class="bdc-note bdc-wide" placeholder="<?php echo esc_attr( BDC_Chat::default_message() ); ?>"><?php echo esc_textarea( $chat['message'] ); ?></textarea>
+			<?php self::row_close( __( 'The message customers start with. {product} becomes the product name and {link} the page link. Leave empty to use the text shown in grey.', 'bd-courier' ) ); ?>
 
 		<?php self::panel_close(); ?>
 
@@ -640,8 +812,11 @@ class BDC_Settings_Page {
 
 	/* ---- Building blocks ---- */
 
-	private static function panel_open( $title, $intro = '', $link = '', $link_text = '' ) {
-		echo '<section class="bdc-panel"><header class="bdc-panel__head"><h2>' . esc_html( $title ) . '</h2>';
+	/**
+	 * @param string $layout '' for label-left rows, 'grid' for fields with their label on top, side by side.
+	 */
+	private static function panel_open( $title, $intro = '', $link = '', $link_text = '', $layout = '' ) {
+		echo '<section class="bdc-panel' . ( 'grid' === $layout ? ' bdc-panel--grid' : '' ) . '"><header class="bdc-panel__head"><h2>' . esc_html( $title ) . '</h2>';
 		if ( $intro ) {
 			echo '<p>' . esc_html( $intro );
 			if ( $link ) {
@@ -656,8 +831,9 @@ class BDC_Settings_Page {
 		echo '</div></section>';
 	}
 
-	private static function row_open( $label, $for = '' ) {
-		echo '<div class="bdc-row"><div class="bdc-row__label">';
+	/** @param bool $wide In a grid panel, take the full row (for long text). */
+	private static function row_open( $label, $for = '', $wide = false ) {
+		echo '<div class="bdc-row' . ( $wide ? ' bdc-row--wide' : '' ) . '"><div class="bdc-row__label">';
 		echo $for ? '<label for="' . esc_attr( $for ) . '">' . esc_html( $label ) . '</label>' : esc_html( $label );
 		echo '</div><div class="bdc-row__field">';
 	}

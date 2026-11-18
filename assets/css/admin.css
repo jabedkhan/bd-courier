@@ -6930,3 +6930,1141 @@ td.column-bdc_courier .bdc-consignment {
 .bdc-record .bdc-score-skeleton__bar {
 	height: 18px !important;
 }
+
+/* Selected status chip: solid accent with readable text (after the general chip rule). */
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .subsubsub a.current {
+	border-color: var(--bdc-accent);
+	background: var(--bdc-accent);
+	color: var(--bdc-on-accent);
+	font-weight: 600;
+}
+
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .subsubsub a.current:hover,
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .subsubsub a.current:focus {
+	border-color: var(--bdc-accent-dark);
+	background: var(--bdc-accent-dark);
+	color: var(--bdc-on-accent);
+}
+
+/* ---- Orders on phones: filters tucked behind a filter button ---- */
+.bdc-filter-toggle {
+	display: none;
+}
+
+@container bdc-orders (max-width: 760px) {
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .search-box .bdc-filter-toggle {
+		position: relative;
+		display: inline-flex;
+		flex: none;
+		align-items: center;
+		justify-content: center;
+		width: var(--bdc-ctl-h);
+		height: var(--bdc-ctl-h);
+		margin: 0;
+		padding: 0;
+		border: 1px solid var(--bdc-line);
+		border-radius: 12px;
+		background: var(--bdc-surface);
+		box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
+		color: var(--bdc-text);
+		cursor: pointer;
+		transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .search-box .bdc-filter-toggle[aria-expanded="true"] {
+		border-color: var(--bdc-accent);
+		background: var(--bdc-accent);
+		color: var(--bdc-on-accent);
+	}
+
+	/* A dot when a filter is in use, so it is not forgotten while hidden. */
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .bdc-filter-toggle.has-active::after {
+		content: "";
+		position: absolute;
+		top: 8px;
+		right: 8px;
+		width: 8px;
+		height: 8px;
+		border: 2px solid var(--bdc-surface);
+		border-radius: 50%;
+		background: var(--bdc-accent);
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .bdc-filter-toggle svg {
+		display: block;
+	}
+
+	/* Closed: the filter card folds away smoothly. */
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav.top.bdc-collapsible {
+		max-height: 0;
+		margin-bottom: 0 !important;
+		padding-top: 0 !important;
+		padding-bottom: 0 !important;
+		border-width: 0 !important;
+		overflow: hidden;
+		opacity: 0;
+		transform: translateY(-6px);
+		transition: max-height 0.3s ease, opacity 0.22s ease, transform 0.25s ease, padding 0.25s ease, margin 0.25s ease;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav.top.bdc-collapsible.is-open {
+		max-height: 900px;
+		margin-bottom: 12px !important;
+		padding-top: 12px !important;
+		padding-bottom: 12px !important;
+		border-width: 1px !important;
+		overflow: visible;
+		opacity: 1;
+		transform: none;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.tablenav.top.bdc-collapsible {
+		transition: none !important;
+	}
+}
+
+/* ---- Reports: Steadfast account card ---- */
+.bdc-sf-account {
+	margin: 0 0 18px;
+	padding: 16px 18px;
+	border: 1px solid var(--bdc-line);
+	border-radius: 14px;
+	background: linear-gradient(180deg, var(--bdc-steadfast-bg) 0%, var(--bdc-surface) 55%);
+	box-shadow: var(--bdc-shadow);
+}
+
+.bdc-sf-account__head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	margin-bottom: 12px;
+}
+
+.bdc-sf-account__title {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	color: var(--bdc-ink);
+	font-size: 15px;
+	font-weight: 600;
+}
+
+.bdc-sf-account__refresh {
+	display: inline-flex !important;
+	align-items: center;
+	gap: 6px;
+	min-height: 36px !important;
+	border-radius: 10px !important;
+	font-weight: 600;
+}
+
+.bdc-sf-account__refresh .dashicons {
+	width: 16px;
+	height: 16px;
+	font-size: 16px;
+}
+
+.bdc-sf-account.is-loading .bdc-sf-account__refresh .dashicons {
+	animation: bdc-spin 0.9s linear infinite;
+}
+
+@keyframes bdc-spin {
+	to { transform: rotate(360deg); }
+}
+
+.bdc-sf-account__stats {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	gap: 12px;
+	margin-bottom: 12px;
+}
+
+.bdc-sf-account__payments {
+	width: 100%;
+	max-width: none;
+}
+
+.bdc-sf-account__note {
+	margin: 10px 0 0;
+	color: var(--bdc-muted);
+	font-size: 12px;
+}
+
+/* =========================================================
+   Quick view (WooCommerce's order preview): same premium look
+   as the courier popups
+   ========================================================= */
+.post-type-shop_order .wc-backbone-modal-backdrop,
+.woocommerce_page_wc-orders .wc-backbone-modal-backdrop {
+	background: rgba(15, 23, 42, 0.5);
+	-webkit-backdrop-filter: blur(3px);
+	backdrop-filter: blur(3px);
+	opacity: 1;
+	animation: bdc-fade 0.16s ease-out;
+}
+
+.wc-backbone-modal.wc-order-preview .wc-backbone-modal-content {
+	max-width: 760px;
+	overflow: hidden;
+	border: 1px solid rgba(15, 23, 42, 0.06);
+	border-radius: 18px;
+	box-shadow: 0 30px 70px rgba(15, 23, 42, 0.28), 0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+.wc-backbone-modal.wc-order-preview .wc-backbone-modal-main {
+	padding-bottom: 0;
+	background: var(--bdc-surface);
+}
+
+/* Header: accent stripe, title, status, round close button. */
+.wc-backbone-modal.wc-order-preview .wc-backbone-modal-header {
+	position: relative;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	height: auto;
+	min-height: 0;
+	padding: 20px 22px 16px;
+	border-bottom: 1px solid var(--bdc-line);
+	background: linear-gradient(180deg, var(--bdc-accent-soft) 0%, var(--bdc-surface) 140%);
+}
+
+.wc-backbone-modal.wc-order-preview .wc-backbone-modal-header::before {
+	content: "";
+	position: absolute;
+	inset: 0 0 auto 0;
+	height: 3px;
+	background: var(--bdc-accent);
+}
+
+.wc-backbone-modal.wc-order-preview .wc-backbone-modal-header h1 {
+	flex: 1;
+	margin: 0;
+	padding: 0;
+	color: var(--bdc-ink);
+	font-size: 17px;
+	font-weight: 600;
+	line-height: 1.3;
+}
+
+.wc-backbone-modal.wc-order-preview .wc-backbone-modal-header mark.order-status {
+	position: static;
+	margin: 0;
+	transform: none;
+}
+
+.wc-backbone-modal.wc-order-preview .modal-close-link {
+	position: static;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex: none;
+	width: 34px;
+	height: 34px;
+	margin: 0;
+	padding: 0;
+	border: 1px solid var(--bdc-line);
+	border-radius: 10px;
+	background: var(--bdc-surface);
+	color: var(--bdc-muted);
+	transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.wc-backbone-modal.wc-order-preview .modal-close-link:hover,
+.wc-backbone-modal.wc-order-preview .modal-close-link:focus {
+	border-color: var(--bdc-line-strong);
+	background: var(--bdc-soft);
+	color: var(--bdc-ink);
+	box-shadow: none;
+}
+
+.wc-backbone-modal.wc-order-preview .modal-close-link::before {
+	width: 18px;
+	height: 18px;
+	font-size: 18px;
+	line-height: 18px;
+}
+
+/* Body. */
+.wc-backbone-modal.wc-order-preview article {
+	padding: 18px 22px 8px;
+	background: var(--bdc-surface);
+}
+
+/* Billing and shipping as soft cards side by side. */
+.wc-backbone-modal.wc-order-preview .wc-order-preview-addresses {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	gap: 12px;
+	margin: 0 0 14px;
+	padding: 0;
+	overflow: visible;
+}
+
+.wc-backbone-modal.wc-order-preview .wc-order-preview-address {
+	float: none;
+	width: auto;
+	margin: 0;
+	padding: 14px 16px;
+	border: 1px solid var(--bdc-line);
+	border-radius: 14px;
+	background: var(--bdc-surface);
+	color: var(--bdc-text);
+	font-size: 13px;
+	line-height: 1.55;
+}
+
+.wc-backbone-modal.wc-order-preview .wc-order-preview-address h2 {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin: 0 0 8px;
+	padding: 0;
+	color: var(--bdc-muted);
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.wc-backbone-modal.wc-order-preview .wc-order-preview-address h2::before {
+	content: "";
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: var(--bdc-accent);
+}
+
+.wc-backbone-modal.wc-order-preview .wc-order-preview-address strong {
+	display: block;
+	margin: 10px 0 2px;
+	color: var(--bdc-muted);
+	font-size: 11.5px;
+	font-weight: 600;
+}
+
+.wc-backbone-modal.wc-order-preview .wc-order-preview-address a {
+	color: var(--bdc-accent);
+	text-decoration: none;
+}
+
+.wc-backbone-modal.wc-order-preview .wc-order-preview-address a:hover {
+	text-decoration: underline;
+}
+
+/* Items: a rounded card with a calm header row. */
+.wc-backbone-modal.wc-order-preview .wc-order-preview-table-wrapper {
+	margin: 0 0 14px;
+	padding: 0;
+	overflow: hidden;
+	border: 1px solid var(--bdc-line);
+	border-radius: 14px;
+}
+
+.wc-backbone-modal.wc-order-preview .wc-order-preview-table {
+	margin: 0;
+	border: 0;
+}
+
+.wc-backbone-modal.wc-order-preview .wc-order-preview-table thead th {
+	padding: 10px 16px;
+	border: 0;
+	background: #f8fafc;
+	color: var(--bdc-muted);
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+.wc-backbone-modal.wc-order-preview .wc-order-preview-table td {
+	padding: 12px 16px;
+	border-top: 1px solid var(--bdc-line);
+	color: var(--bdc-ink);
+	font-size: 13.5px;
+}
+
+.wc-backbone-modal.wc-order-preview .wc-order-preview-table td.wc-order-preview-table__column--total {
+	font-weight: 600;
+}
+
+/* Our sections inside the quick view share the card look. */
+.wc-backbone-modal.wc-order-preview .bdc-quick {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: none;
+}
+
+.wc-backbone-modal.wc-order-preview .bdc-quick__section {
+	margin: 0 0 14px;
+	padding: 14px 16px;
+	border: 1px solid var(--bdc-line);
+	border-radius: 14px;
+	background: var(--bdc-surface);
+}
+
+.wc-backbone-modal.wc-order-preview .bdc-quick__section h3 {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin: 0 0 10px;
+	color: var(--bdc-muted);
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.wc-backbone-modal.wc-order-preview .bdc-quick__section h3::before {
+	content: "";
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: var(--bdc-accent);
+}
+
+.wc-backbone-modal.wc-order-preview .bdc-quick textarea {
+	border: 1px solid var(--bdc-line);
+	border-radius: 10px;
+	box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+}
+
+.wc-backbone-modal.wc-order-preview .bdc-quick textarea:focus {
+	border-color: var(--bdc-accent);
+	box-shadow: 0 0 0 3px var(--bdc-accent-soft);
+	outline: none;
+}
+
+.wc-backbone-modal.wc-order-preview .bdc-quick__add .button {
+	min-height: 42px;
+	border-radius: 10px;
+	font-weight: 600;
+}
+
+/* Footer: frosted bar with WooCommerce's actions and the Edit button. */
+.wc-backbone-modal.wc-order-preview footer {
+	position: sticky;
+	bottom: 0;
+	padding: 0;
+	border-top: 1px solid var(--bdc-line);
+	background: rgba(248, 250, 252, 0.96);
+	-webkit-backdrop-filter: blur(6px);
+	backdrop-filter: blur(6px);
+	box-shadow: none;
+}
+
+.wc-backbone-modal.wc-order-preview footer .inner {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 10px;
+	padding: 14px 22px;
+}
+
+.wc-backbone-modal.wc-order-preview footer .inner .wc-action-button-group {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-right: auto;
+	float: none;
+}
+
+.wc-backbone-modal.wc-order-preview footer .button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	height: 42px;
+	min-height: 42px;
+	margin: 0;
+	padding: 0 20px;
+	border-radius: 10px;
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 1;
+}
+
+/* Phones: a full-height sheet. */
+@media (max-width: 600px) {
+	.wc-backbone-modal.wc-order-preview .wc-backbone-modal-content {
+		position: fixed;
+		inset: 0;
+		width: 100%;
+		max-width: none;
+		height: 100%;
+		max-height: none;
+		margin: 0;
+		border: 0;
+		border-radius: 0;
+		transform: none;
+	}
+
+	.wc-backbone-modal.wc-order-preview .wc-backbone-modal-main {
+		display: flex;
+		flex-direction: column;
+		height: 100%;
+	}
+
+	.wc-backbone-modal.wc-order-preview article {
+		flex: 1;
+		max-height: none !important;
+		padding: 14px 14px 6px;
+		overflow-y: auto;
+	}
+
+	.wc-backbone-modal.wc-order-preview .wc-backbone-modal-header {
+		padding: 16px 14px 12px;
+	}
+
+	.wc-backbone-modal.wc-order-preview footer .inner {
+		padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
+	}
+
+	.wc-backbone-modal.wc-order-preview footer .button-primary {
+		flex: 1;
+	}
+}
+
+/* Quick view fixes: title first, status next to it, close at the end. */
+.wc-backbone-modal.wc-order-preview .wc-backbone-modal-header h1 {
+	order: 0;
+	flex: 0 1 auto;
+}
+
+.wc-backbone-modal.wc-order-preview .wc-backbone-modal-header mark.order-status {
+	order: 1;
+	margin-right: auto;
+}
+
+.wc-backbone-modal.wc-order-preview .modal-close-link {
+	order: 2;
+}
+
+/* Address cards fill the row, one or two of them. */
+.wc-backbone-modal.wc-order-preview .wc-order-preview-addresses {
+	display: flex;
+	flex-wrap: wrap;
+}
+
+.wc-backbone-modal.wc-order-preview .wc-order-preview-address {
+	flex: 1 1 220px;
+}
+
+.wc-backbone-modal.wc-order-preview footer .button {
+	padding-top: 0 !important;
+	padding-bottom: 0 !important;
+	line-height: 1 !important;
+}
+
+.wc-backbone-modal.wc-order-preview .wc-backbone-modal-main footer .inner .button {
+	display: inline-flex !important;
+	align-items: center;
+	justify-content: center;
+	height: 42px !important;
+	min-height: 42px !important;
+	padding: 0 22px !important;
+	border-radius: 10px !important;
+	font-size: 14px !important;
+	font-weight: 600;
+	line-height: 1 !important;
+}
+
+@media (max-width: 600px) {
+	.wc-backbone-modal.wc-order-preview footer .wc-backbone-modal-buttons {
+		display: flex;
+		flex: 1;
+	}
+
+	.wc-backbone-modal.wc-order-preview .wc-backbone-modal-main footer .inner .wc-backbone-modal-buttons .button {
+		flex: 1;
+	}
+}
+
+.bdc-sf-account .bdc-table-scroll,
+.bdc-sf-account .bdc-reports__table {
+	width: 100%;
+	max-width: none;
+}
+
+.bdc-sf-account .bdc-reports__table .bdc-col-money {
+	text-align: right;
+}
+
+/* Search row spans the full width, lined up with the filter card below. */
+@container bdc-orders (max-width: 760px) {
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .search-box {
+		box-sizing: border-box;
+		width: 100% !important;
+		max-width: none !important;
+		margin-right: 0 !important;
+		margin-left: 0 !important;
+		gap: 8px;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .search-box input[type="search"] {
+		flex: 1 1 auto;
+		width: auto !important;
+		min-width: 0;
+	}
+}
+
+/* Very narrow phones: the search button shows a magnifier instead of words. */
+@container bdc-orders (max-width: 420px) {
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .search-box input[type="submit"].button {
+		width: var(--bdc-ctl-h);
+		padding: 0 !important;
+		color: transparent !important;
+		background: var(--bdc-surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23111827' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") no-repeat center !important;
+		overflow: hidden;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .search-box input[type="search"] {
+		padding-left: 14px;
+		background-image: none;
+	}
+}
+
+/* Phones and narrow windows: compact page buttons. */
+@container bdc-orders (max-width: 760px) {
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav .pagination-links {
+		gap: 4px;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav .tablenav-pages .button,
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav .tablenav-pages .tablenav-pages-navspan {
+		width: 34px !important;
+		min-width: 34px !important;
+		height: 34px !important;
+		min-height: 34px !important;
+		border-radius: 8px;
+		font-size: 14px;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav .current-page {
+		width: 40px !important;
+		height: 34px !important;
+		min-height: 34px !important;
+		border-radius: 8px;
+		font-size: 13px;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav .paging-input {
+		gap: 4px;
+		font-size: 13px;
+	}
+}
+
+/* ---- Quick view: private note box (one robust layout for every width) ---- */
+.bdc-quick {
+	container-type: inline-size;
+	container-name: bdc-quick;
+}
+
+.bdc-quick .bdc-quick__add {
+	display: grid !important;
+	grid-template-columns: minmax(0, 1fr) auto;
+	align-items: start;
+	gap: 8px;
+	margin: 0 0 12px;
+}
+
+.bdc-quick .bdc-quick__add > label {
+	position: absolute;
+}
+
+.bdc-quick .bdc-quick__add textarea {
+	box-sizing: border-box;
+	display: block;
+	flex: none !important;
+	width: 100% !important;
+	max-width: none;
+	height: auto;
+	min-height: 42px;
+	margin: 0;
+	padding: 10px 12px;
+	border: 1px solid var(--bdc-line);
+	border-radius: 10px;
+	box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+	font-size: 14px;
+	line-height: 1.45;
+	resize: vertical;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.bdc-quick .bdc-quick__add textarea:focus {
+	border-color: var(--bdc-accent);
+	box-shadow: 0 0 0 3px var(--bdc-accent-soft);
+	outline: none;
+}
+
+.bdc-quick .bdc-quick__add .button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	align-self: start !important;
+	height: 42px;
+	min-height: 42px;
+	margin: 0;
+	padding: 0 18px;
+	border-radius: 10px;
+	font-weight: 600;
+	line-height: 1;
+	white-space: nowrap;
+}
+
+/* Narrow: note box on its own line, full-width button below it. */
+@container bdc-quick (max-width: 420px) {
+	.bdc-quick .bdc-quick__add {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.bdc-quick .bdc-quick__add textarea {
+		min-height: 72px;
+	}
+
+	.bdc-quick .bdc-quick__add .button {
+		width: 100%;
+	}
+}
+
+/* Quick view body: comfortable space on the left and right at every width. */
+.wc-backbone-modal.wc-order-preview .wc-backbone-modal-main article {
+	padding: 18px 22px 8px !important;
+}
+
+.wc-backbone-modal.wc-order-preview .wc-backbone-modal-main .bdc-quick__brand {
+	margin: 0 0 12px;
+	padding: 0 2px;
+}
+
+@media (max-width: 600px) {
+	.wc-backbone-modal.wc-order-preview .wc-backbone-modal-main article {
+		padding: 14px 16px 6px !important;
+	}
+}
+
+/* Tablets and phones (and any narrow quick view): full-width note box, button underneath. */
+@media (max-width: 1024px) {
+	.bdc-quick .bdc-quick__add {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.bdc-quick .bdc-quick__add textarea {
+		min-height: 80px;
+	}
+
+	.bdc-quick .bdc-quick__add .button {
+		width: 100%;
+	}
+}
+
+@container bdc-quick (max-width: 560px) {
+	.bdc-quick .bdc-quick__add {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.bdc-quick .bdc-quick__add textarea {
+		min-height: 80px;
+	}
+
+	.bdc-quick .bdc-quick__add .button {
+		width: 100%;
+	}
+}
+
+/* Quick view close button: a small rounded square in line with the title. */
+.wc-backbone-modal.wc-order-preview .wc-backbone-modal-main .wc-backbone-modal-header .modal-close-link {
+	position: static !important;
+	display: inline-flex !important;
+	align-items: center;
+	justify-content: center;
+	order: 2;
+	flex: none;
+	width: 34px !important;
+	height: 34px !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: 1px solid var(--bdc-line) !important;
+	border-radius: 10px !important;
+	background: var(--bdc-surface) !important;
+	color: var(--bdc-muted) !important;
+	box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
+	transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.wc-backbone-modal.wc-order-preview .wc-backbone-modal-main .wc-backbone-modal-header .modal-close-link:hover,
+.wc-backbone-modal.wc-order-preview .wc-backbone-modal-main .wc-backbone-modal-header .modal-close-link:focus {
+	border-color: var(--bdc-line-strong) !important;
+	background: var(--bdc-soft) !important;
+	color: var(--bdc-ink) !important;
+	outline: none;
+}
+
+.wc-backbone-modal.wc-order-preview .wc-backbone-modal-main .wc-backbone-modal-header .modal-close-link:focus-visible {
+	box-shadow: 0 0 0 3px var(--bdc-accent-soft);
+}
+
+.wc-backbone-modal.wc-order-preview .wc-backbone-modal-main .wc-backbone-modal-header .modal-close-link::before {
+	width: 18px;
+	height: 18px;
+	margin: 0;
+	font-size: 18px;
+	line-height: 18px;
+}
+
+.wc-backbone-modal.wc-order-preview .wc-backbone-modal-main .wc-backbone-modal-header {
+	padding-right: 18px !important;
+}
+
+.wc-backbone-modal.wc-order-preview .wc-backbone-modal-main .wc-backbone-modal-header .modal-close-link::before {
+	position: static !important;
+	display: block !important;
+	width: 18px !important;
+	height: 18px !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	font-size: 18px !important;
+	line-height: 18px !important;
+	transform: none !important;
+}
+
+/* Plugin mark in the page header: the parcel icon on an accent tile. */
+.bdc-header__mark {
+	width: 36px;
+	height: 36px;
+	border-radius: 10px;
+	box-shadow: 0 4px 10px -3px var(--bdc-accent), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.bdc-header__mark svg {
+	display: block;
+	width: 20px;
+	height: 20px;
+}
+
+/* ---- Date fields: same look on every phone and desktop ---- */
+.bdc-daterange .bdc-date {
+	position: relative;
+	display: flex;
+	flex: 1 1 0;
+	align-items: center;
+	min-width: 0;
+}
+
+.bdc-daterange .bdc-date input[type="date"] {
+	flex: 1 1 auto;
+	width: 100% !important;
+	min-width: 0;
+	-webkit-appearance: none;
+	appearance: none;
+	background: transparent !important;
+	color: var(--bdc-ink);
+	-webkit-text-fill-color: var(--bdc-ink);
+}
+
+/* iPhone: keep the chosen date on the left and give an empty field its height. */
+.bdc-daterange .bdc-date input[type="date"]::-webkit-date-and-time-value {
+	min-height: 1.4em;
+	margin: 0;
+	text-align: left;
+}
+
+/* Empty: hide the browser's own "dd/mm/yyyy" and show our hint instead. */
+.bdc-daterange .bdc-date.is-empty input[type="date"] {
+	color: transparent;
+	-webkit-text-fill-color: transparent;
+}
+
+.bdc-daterange .bdc-date.is-empty input[type="date"]:focus {
+	color: var(--bdc-ink);
+	-webkit-text-fill-color: var(--bdc-ink);
+}
+
+.bdc-daterange .bdc-date__hint {
+	position: absolute;
+	top: 50%;
+	left: 6px;
+	display: none;
+	color: var(--bdc-muted);
+	font-size: 14px;
+	font-weight: 500;
+	pointer-events: none;
+	transform: translateY(-50%);
+}
+
+.bdc-daterange .bdc-date.is-empty .bdc-date__hint {
+	display: block;
+}
+
+.bdc-daterange .bdc-date.is-empty input[type="date"]:focus + .bdc-date__hint {
+	display: none;
+}
+
+/* =========================================================
+   Settings: premium tabs, panel headings, switches and grids
+   ========================================================= */
+
+/* Tabs: a pill bar with icons. */
+.bdc-settings .bdc-tabs {
+	display: flex;
+	flex-wrap: nowrap;
+	gap: 4px;
+	margin: 0 0 18px;
+	padding: 5px;
+	overflow-x: auto;
+	border: 1px solid var(--bdc-line);
+	border-radius: 14px;
+	background: var(--bdc-surface);
+	box-shadow: var(--bdc-shadow);
+}
+
+.bdc-settings .bdc-tabs a {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+	gap: 7px;
+	min-height: 38px;
+	margin: 0;
+	padding: 0 14px;
+	border: 0;
+	border-radius: 10px;
+	color: var(--bdc-muted);
+	font-size: 13.5px;
+	font-weight: 600;
+	text-decoration: none;
+	white-space: nowrap;
+	transition: background 0.15s ease, color 0.15s ease;
+}
+
+.bdc-settings .bdc-tabs a .dashicons {
+	width: 16px;
+	height: 16px;
+	font-size: 16px;
+}
+
+.bdc-settings .bdc-tabs a:hover,
+.bdc-settings .bdc-tabs a:focus {
+	background: var(--bdc-soft);
+	color: var(--bdc-ink);
+	box-shadow: none;
+}
+
+.bdc-settings .bdc-tabs a.is-current {
+	border: 0;
+	background: var(--bdc-accent);
+	box-shadow: 0 4px 12px -6px var(--bdc-accent);
+	color: var(--bdc-on-accent);
+}
+
+.bdc-settings .bdc-tabs a.is-current .bdc-dot {
+	box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.7);
+}
+
+/* Panel headings with a brand-colour accent. */
+.bdc-settings .bdc-panel {
+	border-radius: 16px;
+	overflow: hidden;
+}
+
+.bdc-settings .bdc-panel__head {
+	position: relative;
+	padding: 18px 22px 16px 34px;
+	border-bottom: 1px solid var(--bdc-line);
+	background: linear-gradient(180deg, var(--bdc-soft) 0%, var(--bdc-surface) 100%);
+}
+
+.bdc-settings .bdc-panel__head::before {
+	content: "";
+	position: absolute;
+	top: 20px;
+	left: 20px;
+	width: 4px;
+	height: 18px;
+	border-radius: 4px;
+	background: var(--bdc-accent);
+}
+
+.bdc-settings .bdc-panel__head h2 {
+	margin: 0 0 2px;
+	color: var(--bdc-ink);
+	font-size: 15.5px;
+	font-weight: 700;
+}
+
+.bdc-settings .bdc-panel__head p {
+	margin: 0;
+	color: var(--bdc-muted);
+	font-size: 13px;
+	line-height: 1.55;
+}
+
+.bdc-settings .bdc-panel__body {
+	padding: 6px 22px 10px;
+}
+
+.bdc-settings .bdc-row {
+	padding: 16px 0;
+}
+
+.bdc-settings .bdc-row + .bdc-row {
+	border-top: 1px solid #f1f3f6;
+}
+
+.bdc-settings .bdc-row__label,
+.bdc-settings .bdc-row__label label {
+	color: var(--bdc-ink);
+	font-size: 13.5px;
+	font-weight: 600;
+}
+
+.bdc-settings .bdc-row__help {
+	margin: 8px 0 0;
+	color: var(--bdc-muted);
+	font-size: 12.5px;
+	line-height: 1.55;
+}
+
+/* Single on/off options become switches (lists of statuses keep their pills). */
+.bdc-settings .bdc-row__field > .bdc-check {
+	gap: 12px;
+	min-height: 28px;
+	padding: 0;
+	border: 0;
+	background: none;
+}
+
+.bdc-settings .bdc-row__field > .bdc-check input[type="checkbox"] {
+	width: 40px;
+	height: 24px;
+	min-width: 40px;
+	border: 0;
+	border-radius: 999px;
+	background: #d6dbe3;
+	box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.12);
+	transition: background 0.2s ease;
+}
+
+.bdc-settings .bdc-row__field > .bdc-check input[type="checkbox"]::before {
+	content: "" !important;
+	top: 3px;
+	left: 3px;
+	width: 18px;
+	height: 18px;
+	border: 0;
+	border-radius: 50%;
+	background: #fff !important;
+	box-shadow: 0 1px 3px rgba(15, 23, 42, 0.3);
+	transform: none;
+	transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.bdc-settings .bdc-row__field > .bdc-check input[type="checkbox"]:checked {
+	background: var(--bdc-accent);
+}
+
+.bdc-settings .bdc-row__field > .bdc-check input[type="checkbox"]:checked::before {
+	transform: translateX(16px);
+}
+
+/* Grid panels: fields with their label on top, side by side. */
+.bdc-settings .bdc-panel--grid .bdc-panel__body {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 18px 20px;
+	padding: 20px 22px 22px;
+}
+
+.bdc-settings .bdc-panel--grid .bdc-row {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin: 0;
+	padding: 0;
+	border: 0 !important;
+}
+
+.bdc-settings .bdc-panel--grid .bdc-row--wide {
+	grid-column: 1 / -1;
+}
+
+.bdc-settings .bdc-panel--grid .bdc-row__label {
+	width: auto;
+	padding: 0;
+	flex: none;
+}
+
+.bdc-settings .bdc-panel--grid .bdc-row__field {
+	width: 100%;
+	min-width: 0;
+}
+
+.bdc-settings .bdc-panel--grid .bdc-row__field input[type="text"],
+.bdc-settings .bdc-panel--grid .bdc-row__field input[type="number"],
+.bdc-settings .bdc-panel--grid .bdc-row__field input[type="password"],
+.bdc-settings .bdc-panel--grid .bdc-row__field select,
+.bdc-settings .bdc-panel--grid .bdc-row__field textarea {
+	width: 100% !important;
+	max-width: none;
+}
+
+/* Delivery area cards: name on its own line, charge and time below. */
+.bdc-settings .bdc-panel--grid .bdc-row__field .bdc-inline {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+	align-items: center;
+	gap: 8px;
+}
+
+.bdc-settings .bdc-panel--grid .bdc-row__field .bdc-inline > input:first-child {
+	grid-column: 1 / -1;
+}
+
+.bdc-settings .bdc-panel--grid .bdc-row__field .bdc-inline > input[type="number"] {
+	width: 100% !important;
+}
+
+.bdc-settings .bdc-panel--grid .bdc-row__field .bdc-inline > input[style] {
+	width: 100% !important;
+}
+
+@media (max-width: 1100px) {
+	.bdc-settings .bdc-panel--grid .bdc-panel__body {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 700px) {
+	.bdc-settings .bdc-panel--grid .bdc-panel__body {
+		grid-template-columns: minmax(0, 1fr);
+		padding: 16px;
+	}
+
+	.bdc-settings .bdc-panel__head {
+		padding: 16px 16px 14px 28px;
+	}
+
+	.bdc-settings .bdc-panel__head::before {
+		left: 14px;
+	}
+
+	.bdc-settings .bdc-panel__body {
+		padding: 4px 16px 8px;
+	}
+}
+
+.bdc-settings .bdc-tabs .bdc-tab-icon {
+	display: block;
+	flex: none;
+	width: 16px;
+	height: 16px;
+	opacity: 0.85;
+}
+
+.bdc-settings .bdc-tabs a.is-current .bdc-tab-icon {
+	opacity: 1;
+}
