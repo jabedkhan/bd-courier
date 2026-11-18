@@ -124,6 +124,7 @@ class BDC_Settings_Page {
 			);
 		} elseif ( 'pathao' === $tab ) {
 			$values = array(
+				'enabled'       => isset( $posted['enabled'] ) ? 'yes' : 'no',
 				'environment'   => 'sandbox' === $text( 'environment' ) ? 'sandbox' : 'live',
 				'client_id'     => $text( 'client_id' ),
 				'store_id'      => $text( 'store_id' ),
@@ -144,10 +145,12 @@ class BDC_Settings_Page {
 				$values['password'] = '';
 			}
 			delete_option( BDC_Pathao::TOKEN_OPTION );
+			delete_transient( BDC_Pathao::LOGIN_FAILED );
 			delete_transient( 'bdc_pathao_stores' );
 			BDC_Settings::update_section( 'pathao', $values );
 		} elseif ( 'steadfast' === $tab ) {
 			$values = array(
+				'enabled'       => isset( $posted['enabled'] ) ? 'yes' : 'no',
 				'api_key'       => $text( 'api_key' ),
 				'delivery_type' => '1' === $text( 'delivery_type' ) ? '1' : '0',
 				'send_note'     => isset( $posted['send_note'] ) ? 'yes' : 'no',
@@ -229,7 +232,7 @@ class BDC_Settings_Page {
 						<?php
 						$courier = BDC_Couriers::get( $key );
 						if ( $courier ) {
-							printf( '<span class="bdc-dot %s" title="%s"></span>', $courier->is_connected() ? 'bdc-dot--on' : '', esc_attr( $courier->is_connected() ? __( 'Credentials saved', 'bd-courier' ) : __( 'Not connected', 'bd-courier' ) ) );
+							printf( '<span class="bdc-dot %s" title="%s"></span>', $courier->is_active() ? 'bdc-dot--on' : '', esc_attr( self::state_label( $courier ) ) );
 						}
 						?>
 					</a>
@@ -287,6 +290,12 @@ class BDC_Settings_Page {
 
 		$courier = BDC_Couriers::get( $tab );
 		if ( isset( $_GET['test'] ) && $courier ) {
+			if ( ! $courier->is_enabled() ) {
+				/* translators: %s: courier name */
+				$message = sprintf( __( 'Settings saved. %s is turned off, so it is hidden from orders, shipments and reports.', 'bd-courier' ), $courier->label() );
+				echo '<div class="notice notice-info is-dismissible"><p>' . esc_html( $message ) . '</p></div>';
+				return;
+			}
 			if ( ! $courier->is_connected() ) {
 				/* translators: %s: courier name */
 				$message = sprintf( __( 'Settings saved. Enter both %s credentials to connect.', 'bd-courier' ), $courier->label() );
@@ -306,6 +315,14 @@ class BDC_Settings_Page {
 		// phpcs:enable
 	}
 
+	/** Short state of a courier for the tab dot and the General cards. */
+	private static function state_label( BDC_Courier $courier ) {
+		if ( ! $courier->is_enabled() ) {
+			return __( 'Turned off', 'bd-courier' );
+		}
+		return $courier->is_connected() ? __( 'Credentials saved', 'bd-courier' ) : __( 'Not connected', 'bd-courier' );
+	}
+
 	/* ---- General ---- */
 
 	private static function general_tab() {
@@ -317,18 +334,21 @@ class BDC_Settings_Page {
 				<a class="bdc-card" href="<?php echo esc_url( self::url( $courier->id() ) ); ?>">
 					<span class="bdc-card__head">
 						<?php echo BDC_View::badge( $courier ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
-						<span class="bdc-pill <?php echo $courier->is_connected() ? 'bdc-pill--ok' : ''; ?>">
-							<?php echo $courier->is_connected() ? esc_html__( 'Credentials saved', 'bd-courier' ) : esc_html__( 'Not connected', 'bd-courier' ); ?>
+						<span class="bdc-pill <?php echo $courier->is_active() ? 'bdc-pill--ok' : ''; ?>">
+							<?php echo esc_html( self::state_label( $courier ) ); ?>
 						</span>
 					</span>
 					<span class="bdc-card__text">
 						<?php
 						echo esc_html(
-							$courier->is_connected()
+							! $courier->is_enabled()
+								/* translators: %s: courier name */
+								? sprintf( __( 'Hidden from orders, shipments and reports. Open %s settings to turn it on', 'bd-courier' ), $courier->label() )
+								: ( $courier->is_connected()
 								/* translators: %s: courier name */
 								? sprintf( __( 'Ready to send from the Orders screen. Open %s settings', 'bd-courier' ), $courier->label() )
 								/* translators: %s: courier name */
-								: sprintf( __( 'Add your %s credentials to start sending parcels', 'bd-courier' ), $courier->label() )
+								: sprintf( __( 'Add your %s credentials to start sending parcels', 'bd-courier' ), $courier->label() ) )
 						);
 						?>
 						<span class="dashicons dashicons-arrow-right-alt2" aria-hidden="true"></span>
@@ -477,6 +497,13 @@ class BDC_Settings_Page {
 		?>
 		<?php self::panel_open( __( 'Connect Pathao', 'bd-courier' ), __( 'Find these in the Pathao merchant panel under Developer API.', 'bd-courier' ), 'https://merchant.pathao.com/courier/developer-api', __( 'Open Pathao merchant panel', 'bd-courier' ) ); ?>
 
+			<?php self::row_open( __( 'Use Pathao', 'bd-courier' ), 'bdc-pathao-enabled' ); ?>
+				<label class="bdc-check">
+					<input type="checkbox" id="bdc-pathao-enabled" name="bdc[enabled]" value="yes" <?php checked( 'yes', $settings['enabled'] ); ?>>
+					<?php esc_html_e( 'Use Pathao in my shop', 'bd-courier' ); ?>
+				</label>
+			<?php self::row_close( __( 'When this is off, Pathao is hidden everywhere: no send buttons, bulk actions, reports or shipment tabs for it. Parcels already sent keep updating.', 'bd-courier' ) ); ?>
+
 			<?php self::row_open( __( 'Environment', 'bd-courier' ), 'bdc-pathao-env' ); ?>
 				<select id="bdc-pathao-env" name="bdc[environment]">
 					<option value="live" <?php selected( 'live', $settings['environment'] ); ?>><?php esc_html_e( 'Live (real parcels)', 'bd-courier' ); ?></option>
@@ -558,6 +585,13 @@ class BDC_Settings_Page {
 		$settings = $courier->settings();
 		?>
 		<?php self::panel_open( __( 'Connect Steadfast', 'bd-courier' ), __( 'Find these in your Steadfast merchant panel under API, or ask Steadfast support for them.', 'bd-courier' ) ); ?>
+
+			<?php self::row_open( __( 'Use Steadfast', 'bd-courier' ), 'bdc-steadfast-enabled' ); ?>
+				<label class="bdc-check">
+					<input type="checkbox" id="bdc-steadfast-enabled" name="bdc[enabled]" value="yes" <?php checked( 'yes', $settings['enabled'] ); ?>>
+					<?php esc_html_e( 'Use Steadfast in my shop', 'bd-courier' ); ?>
+				</label>
+			<?php self::row_close( __( 'When this is off, Steadfast is hidden everywhere: no send buttons, bulk actions, reports or shipment tabs for it. Parcels already sent keep updating.', 'bd-courier' ) ); ?>
 
 			<?php self::row_open( __( 'API Key', 'bd-courier' ), 'bdc-steadfast-key' ); ?>
 				<input type="text" id="bdc-steadfast-key" name="bdc[api_key]" value="<?php echo esc_attr( $settings['api_key'] ); ?>" autocomplete="off">

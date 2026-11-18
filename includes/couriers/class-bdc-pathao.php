@@ -5,6 +5,9 @@ class BDC_Pathao extends BDC_Courier {
 
 	const TOKEN_OPTION = 'bdc_pathao_token';
 
+	/** Remembers a refused login for a few minutes. */
+	const LOGIN_FAILED = 'bdc_pathao_login_failed';
+
 	public function id() {
 		return 'pathao';
 	}
@@ -28,7 +31,41 @@ class BDC_Pathao extends BDC_Courier {
 	/**
 	 * @return string|WP_Error Access token.
 	 */
+	/**
+	 * A login token. When Pathao refuses the login, the refusal is remembered for a
+	 * few minutes so every popup does not wait on another failing login.
+	 */
 	private function token( $force_new = false ) {
+		if ( ! $this->is_connected() ) {
+			return $this->token_request( $force_new );
+		}
+
+		$fingerprint = md5( $this->setting( 'environment', 'live' ) . '|' . $this->setting( 'client_id' ) . '|' . $this->setting( 'client_secret' ) . '|' . $this->setting( 'username' ) . '|' . $this->setting( 'password' ) );
+		$failed      = get_transient( self::LOGIN_FAILED );
+
+		if ( ! $force_new && is_array( $failed ) && ( $failed['for'] ?? '' ) === $fingerprint ) {
+			return new WP_Error( 'bdc_pathao_login', (string) $failed['message'] );
+		}
+
+		$token = $this->token_request( $force_new );
+
+		if ( is_wp_error( $token ) ) {
+			set_transient(
+				self::LOGIN_FAILED,
+				array(
+					'for'     => $fingerprint,
+					'message' => $token->get_error_message(),
+				),
+				5 * MINUTE_IN_SECONDS
+			);
+		} else {
+			delete_transient( self::LOGIN_FAILED );
+		}
+
+		return $token;
+	}
+
+	private function token_request( $force_new = false ) {
 		if ( ! $this->is_connected() ) {
 			return new WP_Error( 'bdc_not_connected', __( 'Pathao is not connected yet. Add your Client ID and Client Secret in BD Courier → Pathao.', 'bd-courier' ) );
 		}
@@ -403,25 +440,6 @@ class BDC_Pathao extends BDC_Courier {
 	public function cod_field() {
 		return 'amount_to_collect';
 	}
-
-	public function edit_fields( WC_Order $order, array $details ) {
-		$fields = parent::edit_fields( $order, $details );
-
-		// The zone and area lists depend on what was chosen above them.
-		if ( ! empty( $details['recipient_city'] ) ) {
-			$zones                                = $this->locations( 'zones', $details['recipient_city'] );
-			$fields['recipient_zone']['options']     = is_wp_error( $zones ) ? array() : $zones;
-			$fields['recipient_zone']['placeholder'] = __( 'Select a zone', 'bd-courier' );
-		}
-		if ( ! empty( $details['recipient_zone'] ) ) {
-			$areas                                = $this->locations( 'areas', $details['recipient_zone'] );
-			$fields['recipient_area']['options']     = is_wp_error( $areas ) ? array() : $areas;
-			$fields['recipient_area']['placeholder'] = __( 'Select an area', 'bd-courier' );
-		}
-
-		return $fields;
-	}
-
 	public function check( array $data ) {
 		$data['recipient_phone']           = self::clean_phone( $data['recipient_phone'] ?? '' );
 		$data['recipient_secondary_phone'] = self::clean_phone( $data['recipient_secondary_phone'] ?? '' );
@@ -539,7 +557,28 @@ class BDC_Pathao extends BDC_Courier {
 		if ( is_wp_error( $response ) ) {
 			return $response;
 		}
+		return $this->parse_customer_record( $response );
+	}
 
+	/** The customer check as a plain request, so it can run alongside Steadfast's. */
+	public function customer_record_request( $phone ) {
+		$token = $this->token();
+		if ( is_wp_error( $token ) ) {
+			return $token;
+		}
+		return array(
+			'url'     => $this->base_url() . '/aladdin/api/v1/user/success',
+			'type'    => 'POST',
+			'headers' => array(
+				'Accept'        => 'application/json',
+				'Content-Type'  => 'application/json',
+				'Authorization' => 'Bearer ' . $token,
+			),
+			'data'    => wp_json_encode( array( 'phone' => $phone ) ),
+		);
+	}
+
+	public function parse_customer_record( array $response ) {
 		$data = (array) ( $response['body']['data'] ?? array() );
 		if ( isset( $data['customer'] ) && is_array( $data['customer'] ) ) {
 			$data = array_merge( $data, $data['customer'] );

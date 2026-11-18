@@ -19,6 +19,16 @@ abstract class BDC_Courier {
 	/** @return true|WP_Error */
 	abstract public function test_connection();
 
+	/** True unless staff turned this courier off in its settings. */
+	public function is_enabled() {
+		return 'no' !== $this->setting( 'enabled', 'yes' );
+	}
+
+	/** Turned on and connected: the courier is offered everywhere. */
+	public function is_active() {
+		return $this->is_enabled() && $this->is_connected();
+	}
+
 	/**
 	 * Fields of the send form, prefilled from the order.
 	 *
@@ -35,21 +45,6 @@ abstract class BDC_Courier {
 
 	/** Name of the form field that holds the cash to collect. */
 	abstract public function cod_field();
-
-	/**
-	 * Form fields for editing a parcel that was already sent:
-	 * the same form, filled with what was sent.
-	 */
-	public function edit_fields( WC_Order $order, array $details ) {
-		$fields = $this->form_fields( $order );
-		foreach ( $fields as $key => $field ) {
-			if ( array_key_exists( $key, $details ) ) {
-				$fields[ $key ]['value'] = $details[ $key ];
-			}
-		}
-		return $fields;
-	}
-
 	/**
 	 * Create the parcel at the courier.
 	 *

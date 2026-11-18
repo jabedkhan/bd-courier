@@ -30,6 +30,7 @@ class BDC_Settings {
 				'footer_note'      => '',
 			),
 			'pathao'    => array(
+				'enabled'        => 'yes',
 				'environment'    => 'live',
 				'client_id'      => '',
 				'client_secret'  => '',
@@ -42,6 +43,7 @@ class BDC_Settings {
 				'default_note'   => '',
 			),
 			'steadfast' => array(
+				'enabled'       => 'yes',
 				'api_key'       => '',
 				'secret_key'    => '',
 				'webhook_token' => '',
@@ -52,7 +54,14 @@ class BDC_Settings {
 		);
 	}
 
+	/** Settings for this request; they are read many times per page. */
+	private static $cache = null;
+
 	public static function all() {
+		if ( null !== self::$cache ) {
+			return self::$cache;
+		}
+
 		$saved    = get_option( self::OPTION, array() );
 		$saved    = is_array( $saved ) ? $saved : array();
 		$settings = array();
@@ -62,6 +71,7 @@ class BDC_Settings {
 			$settings[ $section ] = array_merge( $defaults, array_intersect_key( $values, $defaults ) );
 		}
 
+		self::$cache = $settings;
 		return $settings;
 	}
 
@@ -84,7 +94,9 @@ class BDC_Settings {
 		}
 
 		$all[ $section ] = array_merge( $all[ $section ], array_intersect_key( $values, $defaults[ $section ] ) );
-		update_option( self::OPTION, $all, false );
+		// Loaded with WordPress's other options: the settings are needed on most requests.
+		update_option( self::OPTION, $all, true );
+		self::$cache = null;
 	}
 
 	/**

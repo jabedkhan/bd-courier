@@ -42,12 +42,11 @@ class BDC_Shipment {
 			'imported'       => false,
 			'checked_at'     => 0, // Last time the courier told us, or was asked, about this parcel.
 			'unsynced'       => false, // Edited here, not yet changed at the courier.
-			'edited_at'      => 0,
 		);
 	}
 
-	/** A parcel that is delivered, returned or cancelled is finished and cannot be edited. */
-	public static function can_edit( array $shipment ) {
+	/** True while the parcel is still on its way (not delivered, returned or cancelled). */
+	public static function is_open( array $shipment ) {
 		return ! in_array( $shipment['status'], array( 'delivered', 'partial', 'returned', 'cancelled' ), true );
 	}
 

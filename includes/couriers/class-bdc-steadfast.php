@@ -257,6 +257,31 @@ class BDC_Steadfast extends BDC_Courier {
 		if ( is_wp_error( $response ) ) {
 			return $response;
 		}
+		return $this->parse_customer_record( $response );
+	}
+
+	/** The customer check as a plain request, so it can run alongside Pathao's. */
+	public function customer_record_request( $phone ) {
+		if ( ! $this->is_connected() ) {
+			return null;
+		}
+		return array(
+			'url'     => self::BASE_URL . '/fraud_check/score/' . rawurlencode( $phone ),
+			'type'    => 'GET',
+			'headers' => array(
+				'Accept'     => 'application/json',
+				'Api-Key'    => $this->setting( 'api_key' ),
+				'Secret-Key' => $this->setting( 'secret_key' ),
+			),
+			'data'    => null,
+		);
+	}
+
+	public function parse_customer_record( array $response ) {
+		$status = (int) ( $response['body']['status'] ?? 0 );
+		if ( in_array( $response['code'], array( 401, 403 ), true ) || 401 === $status ) {
+			return new WP_Error( 'bdc_auth', __( 'Steadfast did not accept the API Key and Secret Key. Please check them in BD Courier → Steadfast.', 'bd-courier' ) );
+		}
 
 		$data      = $response['body'];
 		$total     = self::pick_number( $data, array( 'total_parcels', 'total_orders' ) );
@@ -353,22 +378,5 @@ class BDC_Steadfast extends BDC_Courier {
 	/** The parcel in the Steadfast merchant panel (staff only; asks to log in). */
 	public function panel_url( array $shipment ) {
 		return '' === $shipment['consignment_id'] ? '' : 'https://steadfast.com.bd/user/consignment/' . rawurlencode( $shipment['consignment_id'] );
-	}
-
-	/** The Edit form has one more field: the public tracking link, if staff have it. */
-	public function edit_fields( WC_Order $order, array $details ) {
-		$fields = parent::edit_fields( $order, $details );
-
-		$shipment = BDC_Shipment::get( $order );
-		$fields['tracking_link'] = array(
-			'label'       => __( 'Customer tracking link (optional)', 'bd-courier' ),
-			'type'        => 'text',
-			'value'       => $shipment ? (string) $shipment['tracking_link'] : '',
-			'placeholder' => 'https://steadfast.com.bd/tl/…',
-			'help'        => __( 'Paste the link Steadfast sends the customer by SMS. It is shown to the customer and used by the Track button. Saving it does not change the parcel.', 'bd-courier' ),
-			'group'       => 'parcel',
-		);
-
-		return $fields;
 	}
 }

@@ -90,12 +90,9 @@ class BDC_View {
 		}
 
 		$buttons = '';
-		foreach ( BDC_Couriers::all() as $courier ) {
-			if ( ! $courier->is_connected() ) {
-				continue;
-			}
+		foreach ( BDC_Couriers::active() as $courier ) {
 			$buttons .= sprintf(
-				'<button type="button" class="bdc-send bdc-send--%1$s" data-courier="%1$s" data-order="%2$d" title="%3$s" aria-label="%3$s"><span class="dashicons dashicons-arrow-right-alt" aria-hidden="true"></span>%4$s</button>',
+				'<button type="button" class="bdc-send bdc-send--%1$s" data-courier="%1$s" data-order="%2$d" title="%3$s" aria-label="%3$s"><svg class="bdc-send__icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>%4$s</button>',
 				esc_attr( $courier->id() ),
 				$order->get_id(),
 				/* translators: 1: courier name, 2: order number */
@@ -191,9 +188,7 @@ class BDC_View {
 		$id      = $order->get_id();
 		/* translators: %s: courier name */
 		$actions = self::icon_button( 'update', sprintf( __( 'Get the latest status from %s', 'bd-courier' ), $courier->label() ), 'bdc-refresh', $id );
-		if ( BDC_Shipment::can_edit( $shipment ) ) {
-			$actions .= self::icon_button( 'edit', __( 'Edit parcel details', 'bd-courier' ), 'bdc-edit', $id );
-		}
+		// No edit button: neither Pathao nor Steadfast lets other software change a booked parcel.
 		if ( $track_url ) {
 			/* translators: %s: courier name */
 			$actions .= self::icon_link( 'location', sprintf( __( 'Track on %s', 'bd-courier' ), $courier->label() ), $track_url );
@@ -313,6 +308,11 @@ class BDC_View {
 	}
 
 	/** The order status pill, as WooCommerce draws it in the order list. */
+	/** Small delivery-truck icon used on send buttons. */
+	public static function truck_icon( $class = 'bdc-send__icon' ) {
+		return str_replace( 'class="bdc-send__icon"', 'class="' . esc_attr( $class ) . '"', '<svg class="bdc-send__icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>' );
+	}
+
 	public static function status_mark( WC_Order $order ) {
 		return sprintf(
 			'<mark class="order-status %s"><span>%s</span></mark>',
@@ -343,15 +343,9 @@ class BDC_View {
 		return '<ul class="bdc-history">' . $rows . '</ul>';
 	}
 
-	/**
-	 * The form shown in the popup: sending a parcel, or editing one that was sent.
-	 *
-	 * @param string     $mode   send|edit
-	 * @param array|null $fields Field definitions; the courier's send form when null.
-	 */
-	public static function form( BDC_Courier $courier, WC_Order $order, $mode = 'send', $fields = null ) {
-		$fields  = null === $fields ? $courier->form_fields( $order ) : $fields;
-		$is_edit = 'edit' === $mode;
+	/** The send form shown in the popup, prefilled from the order. */
+	public static function form( BDC_Courier $courier, WC_Order $order ) {
+		$fields = $courier->form_fields( $order );
 		$groups = array(
 			'customer' => __( 'Customer', 'bd-courier' ),
 			'parcel'   => __( 'Parcel', 'bd-courier' ),
@@ -361,18 +355,15 @@ class BDC_View {
 
 		ob_start();
 		?>
-		<form class="bdc-form" data-mode="<?php echo $is_edit ? 'edit' : 'send'; ?>" data-courier="<?php echo esc_attr( $courier->id() ); ?>" data-order="<?php echo esc_attr( $order->get_id() ); ?>" novalidate>
+		<form class="bdc-form" data-courier="<?php echo esc_attr( $courier->id() ); ?>" data-order="<?php echo esc_attr( $order->get_id() ); ?>" novalidate>
 			<header class="bdc-form__header">
 				<?php echo self::badge( $courier ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 				<h2 id="bdc-modal-title">
 					<?php
 					echo esc_html(
 						sprintf(
-							$is_edit
-								/* translators: 1: order number, 2: courier name */
-								? __( 'Edit %2$s parcel for order #%1$s', 'bd-courier' )
-								/* translators: 1: order number, 2: courier name */
-								: __( 'Send order #%1$s with %2$s', 'bd-courier' ),
+							/* translators: 1: order number, 2: courier name */
+							__( 'Send order #%1$s with %2$s', 'bd-courier' ),
 							$order->get_order_number(),
 							$courier->label()
 						)
@@ -383,37 +374,6 @@ class BDC_View {
 			</header>
 
 			<div class="bdc-form__body">
-				<?php if ( $is_edit ) : ?>
-					<?php
-					$edit_shipment = BDC_Shipment::get( $order );
-					$edit_panel    = $edit_shipment ? $courier->panel_url( $edit_shipment ) : '';
-					?>
-					<div class="bdc-form__notice">
-						<strong>
-							<?php
-							/* translators: %s: courier name */
-							echo esc_html( sprintf( __( 'Changes here are not sent to %s.', 'bd-courier' ), $courier->label() ) );
-							?>
-						</strong>
-						<?php
-						echo esc_html(
-							sprintf(
-								/* translators: %s: courier name */
-								__( '%1$s does not let other software change a parcel after it is booked. Your changes are saved in your dashboard and the parcel is flagged until you make the same change in the %1$s merchant panel.', 'bd-courier' ),
-								$courier->label()
-							)
-						);
-						?>
-						<?php if ( $edit_panel ) : ?>
-							<a href="<?php echo esc_url( $edit_panel ); ?>" target="_blank" rel="noopener">
-								<?php
-								/* translators: %s: courier name */
-								echo esc_html( sprintf( __( 'Open this parcel in %s', 'bd-courier' ), $courier->label() ) );
-								?>
-							</a>
-						<?php endif; ?>
-					</div>
-				<?php endif; ?>
 				<div class="bdc-summary">
 					<span><strong><?php esc_html_e( 'Order total', 'bd-courier' ); ?></strong> <?php echo esc_html( self::money( $order->get_total() ) ); ?></span>
 					<span class="bdc-pill <?php echo $paid ? 'bdc-pill--ok' : 'bdc-pill--warn'; ?>">
@@ -429,10 +389,8 @@ class BDC_View {
 				</div>
 
 				<?php
-				if ( ! $is_edit ) {
-					$score_phone = BDC_Fraud::order_phone( $order );
-					echo self::score_panel( $order, BDC_Courier::is_valid_phone( $score_phone ) ? BDC_Fraud::cached( $score_phone ) : null ); // phpcs:ignore WordPress.Security.EscapeOutput
-				}
+				$score_phone = BDC_Fraud::order_phone( $order );
+				echo self::score_panel( $order, BDC_Courier::is_valid_phone( $score_phone ) ? BDC_Fraud::cached( $score_phone ) : null ); // phpcs:ignore WordPress.Security.EscapeOutput
 				?>
 
 				<?php foreach ( $groups as $group => $title ) : ?>
@@ -456,20 +414,16 @@ class BDC_View {
 			<footer class="bdc-form__footer">
 				<span class="bdc-form__hint">
 					<?php
-					echo esc_html(
-						$is_edit
-							/* translators: %s: courier name */
-							? sprintf( __( 'Saved in your dashboard only, not on %s.', 'bd-courier' ), $courier->label() )
-							/* translators: %s: courier name */
-							: sprintf( __( 'Nothing is sent to %s until you press the button.', 'bd-courier' ), $courier->label() )
-					);
+					/* translators: %s: courier name */
+					echo esc_html( sprintf( __( 'Nothing is sent to %s until you press the button.', 'bd-courier' ), $courier->label() ) );
 					?>
 				</span>
 				<button type="button" class="button bdc-modal__cancel"><?php esc_html_e( 'Cancel', 'bd-courier' ); ?></button>
 				<button type="submit" class="button button-primary bdc-form__submit">
+					<?php echo self::truck_icon( 'bdc-form__submit-icon' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 					<?php
 					/* translators: %s: courier name */
-					echo esc_html( $is_edit ? __( 'Save changes', 'bd-courier' ) : sprintf( __( 'Send with %s', 'bd-courier' ), $courier->label() ) );
+					echo esc_html( sprintf( __( 'Send with %s', 'bd-courier' ), $courier->label() ) );
 					?>
 				</button>
 			</footer>

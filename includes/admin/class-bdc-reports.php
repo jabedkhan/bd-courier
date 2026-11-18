@@ -131,9 +131,10 @@ class BDC_Reports {
 				)
 			);
 
+			$shown = BDC_Couriers::shown();
 			foreach ( $orders as $order ) {
 				$shipment = BDC_Shipment::get( $order );
-				if ( ! $shipment || ! BDC_Couriers::get( $shipment['courier'] ) ) {
+				if ( ! $shipment || ! isset( $shown[ $shipment['courier'] ] ) ) {
 					continue;
 				}
 
@@ -168,7 +169,7 @@ class BDC_Reports {
 			'total'    => self::blank(),
 			'days'     => array(),
 		);
-		foreach ( array_keys( BDC_Couriers::all() ) as $id ) {
+		foreach ( array_keys( BDC_Couriers::shown() ) as $id ) {
 			$report['couriers'][ $id ] = self::blank();
 		}
 
@@ -176,7 +177,7 @@ class BDC_Reports {
 		$day  = new DateTimeImmutable( $period['from'], $zone );
 		$last = new DateTimeImmutable( $period['to'], $zone );
 		while ( $day <= $last && count( $report['days'] ) < 366 ) {
-			$report['days'][ $day->format( 'Y-m-d' ) ] = array_fill_keys( array_keys( BDC_Couriers::all() ), 0 );
+			$report['days'][ $day->format( 'Y-m-d' ) ] = array_fill_keys( array_keys( BDC_Couriers::shown() ), 0 );
 			$day                                      = $day->modify( '+1 day' );
 		}
 
@@ -217,6 +218,17 @@ class BDC_Reports {
 		return $report;
 	}
 
+	/** Steadfast first, then Pathao, as on the comparison table. */
+	private static function ordered( array $couriers ) {
+		$sorted = array();
+		foreach ( array( 'steadfast', 'pathao' ) as $id ) {
+			if ( isset( $couriers[ $id ] ) ) {
+				$sorted[ $id ] = $couriers[ $id ];
+			}
+		}
+		return $sorted + $couriers;
+	}
+
 	/** Share of finished parcels that were delivered, or null when none has finished. */
 	private static function success_rate( array $sum ) {
 		$finished = $sum['delivered'] + $sum['partial'] + $sum['returned'];
@@ -228,7 +240,7 @@ class BDC_Reports {
 	public static function render() {
 		$period   = self::period();
 		$report   = self::summarise( self::parcels( $period ), $period );
-		$couriers = BDC_Couriers::all();
+		$couriers = self::ordered( BDC_Couriers::shown() );
 		$total    = $report['total'];
 		$rate     = self::success_rate( $total );
 		$format   = get_option( 'date_format' );
@@ -240,7 +252,14 @@ class BDC_Reports {
 		?>
 		<div class="wrap bdc-page bdc-reports">
 			<?php echo BDC_View::header( 'reports' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
-			<h1 class="wp-heading-inline"><?php esc_html_e( 'Courier reports', 'bd-courier' ); ?></h1>
+			<div class="bdc-titlebar">
+				<h1 class="wp-heading-inline"><?php esc_html_e( 'Courier reports', 'bd-courier' ); ?></h1>
+				<div class="bdc-reports__tools">
+					<a class="button bdc-reports__csv" href="<?php echo esc_url( wp_nonce_url( add_query_arg( array_merge( array( 'action' => 'bdc_report_csv' ), $query ), admin_url( 'admin-post.php' ) ), 'bdc_report_csv' ) ); ?>">
+						<span class="dashicons dashicons-download" aria-hidden="true"></span><?php esc_html_e( 'Download CSV', 'bd-courier' ); ?>
+					</a>
+				</div>
+			</div>
 			<hr class="wp-header-end">
 
 			<form method="get" class="bdc-reports__filters">
@@ -252,19 +271,16 @@ class BDC_Reports {
 					<?php endforeach; ?>
 				</span>
 				<span class="bdc-reports__dates">
-					<label>
-						<span><?php esc_html_e( 'From', 'bd-courier' ); ?></span>
-						<input type="date" name="from" value="<?php echo esc_attr( $period['from'] ); ?>">
-					</label>
-					<label>
-						<span><?php esc_html_e( 'to', 'bd-courier' ); ?></span>
-						<input type="date" name="to" value="<?php echo esc_attr( $period['to'] ); ?>">
-					</label>
-					<button type="submit" class="button"><?php esc_html_e( 'Apply', 'bd-courier' ); ?></button>
+					<fieldset class="bdc-daterange">
+						<legend class="screen-reader-text"><?php esc_html_e( 'Period', 'bd-courier' ); ?></legend>
+						<span class="bdc-daterange__icon dashicons dashicons-calendar-alt" aria-hidden="true"></span>
+						<span class="bdc-daterange__caption" aria-hidden="true"><?php esc_html_e( 'Sent', 'bd-courier' ); ?></span>
+						<input type="date" name="from" value="<?php echo esc_attr( $period['from'] ); ?>" aria-label="<?php esc_attr_e( 'Sent from', 'bd-courier' ); ?>">
+						<span class="bdc-daterange__arrow" aria-hidden="true">&rarr;</span>
+						<input type="date" name="to" value="<?php echo esc_attr( $period['to'] ); ?>" aria-label="<?php esc_attr_e( 'Sent until', 'bd-courier' ); ?>">
+					</fieldset>
+					<button type="submit" class="button button-primary bdc-reports__apply"><?php esc_html_e( 'Apply', 'bd-courier' ); ?></button>
 				</span>
-				<a class="button bdc-reports__csv" href="<?php echo esc_url( wp_nonce_url( add_query_arg( array_merge( array( 'action' => 'bdc_report_csv' ), $query ), admin_url( 'admin-post.php' ) ), 'bdc_report_csv' ) ); ?>">
-					<span class="dashicons dashicons-download" aria-hidden="true"></span><?php esc_html_e( 'Download CSV', 'bd-courier' ); ?>
-				</a>
 			</form>
 
 			<p class="bdc-reports__period">
@@ -284,7 +300,12 @@ class BDC_Reports {
 				<div class="bdc-reports__empty">
 					<span class="dashicons dashicons-chart-bar" aria-hidden="true"></span>
 					<p><strong><?php esc_html_e( 'No parcels in this period', 'bd-courier' ); ?></strong></p>
-					<p><?php esc_html_e( 'Try a longer period, or send an order with Pathao or Steadfast from the Orders screen.', 'bd-courier' ); ?></p>
+					<p>
+						<?php
+						/* translators: %s: courier names, e.g. "Steadfast" or "Steadfast or Pathao" */
+						echo esc_html( sprintf( __( 'Try a longer period, or send an order with %s from the Orders screen.', 'bd-courier' ), BDC_Couriers::names() ) );
+						?>
+					</p>
 				</div>
 			<?php else : ?>
 
@@ -307,10 +328,10 @@ class BDC_Reports {
 					?>
 				</div>
 
-				<h2><?php esc_html_e( 'Side by side', 'bd-courier' ); ?></h2>
+				<h2><?php echo esc_html( count( $couriers ) > 1 ? __( 'Side by side', 'bd-courier' ) : __( 'In detail', 'bd-courier' ) ); ?></h2>
 				<?php
-				$left  = isset( $couriers['steadfast'] ) ? $couriers['steadfast'] : null;
-				$right = isset( $couriers['pathao'] ) ? $couriers['pathao'] : null;
+				$sides = array_values( $couriers );
+				$pair  = 2 === count( $sides );
 				$cell  = function ( array $sum, $key, $type ) {
 					if ( 'rate' === $type ) {
 						$value = self::success_rate( $sum );
@@ -336,39 +357,42 @@ class BDC_Reports {
 				);
 				?>
 				<div class="bdc-table-scroll bdc-versus-wrap">
-					<table class="bdc-reports__table bdc-versus">
+					<table class="bdc-reports__table bdc-versus <?php echo count( $sides ) > 1 ? "" : "bdc-versus--single"; ?>">
 						<thead>
 							<tr>
 								<th class="bdc-versus__metric"><?php esc_html_e( 'Compared', 'bd-courier' ); ?></th>
-								<th class="bdc-versus__side bdc-versus__side--left"><?php echo $left ? BDC_View::badge( $left ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput ?></th>
-								<th class="bdc-versus__side bdc-versus__side--right"><?php echo $right ? BDC_View::badge( $right ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput ?></th>
-								<th class="bdc-versus__total"><?php esc_html_e( 'Total', 'bd-courier' ); ?></th>
+									<?php foreach ( $sides as $side ) : ?>
+										<th class="bdc-versus__side"><?php echo BDC_View::badge( $side ); // phpcs:ignore WordPress.Security.EscapeOutput ?></th>
+									<?php endforeach; ?>
+									<?php if ( count( $sides ) > 1 ) : ?>
+										<th class="bdc-versus__total"><?php esc_html_e( 'Total', 'bd-courier' ); ?></th>
+									<?php endif; ?>
 							</tr>
 						</thead>
 						<tbody>
 							<?php foreach ( $lines as $key => $line ) : ?>
 								<?php
-								$l = $left ? $report['couriers'][ $left->id() ] : null;
-								$r = $right ? $report['couriers'][ $right->id() ] : null;
-								$lv = $l ? $l[ $key ] ?? null : null;
-								$rv = $r ? $r[ $key ] ?? null : null;
-								// Highlight the courier that is ahead on this line (more is better, except money still out and fees).
-								$lower_better = in_array( $key, array( 'returned', 'hold', 'cod_out', 'fees' ), true );
-								if ( 'rate' === $line[1] && $l && $r ) {
-									$lv = self::success_rate( $l );
-									$rv = self::success_rate( $r );
-								}
-								$lead = '';
-								if ( null !== $lv && null !== $rv && $lv != $rv && in_array( $key, array( 'delivered', 'rate', 'cod_collected', 'returned', 'cod_out' ), true ) ) { // phpcs:ignore
-									$lead = ( $lv > $rv ) !== $lower_better ? 'left' : 'right';
-								}
-								?>
-								<tr class="<?php echo in_array( $key, array( 'rate', 'cod_all' ), true ) ? 'bdc-reports__divider' : ''; ?>">
-									<th scope="row" class="bdc-versus__metric"><?php echo esc_html( $line[0] ); ?></th>
-									<td class="bdc-versus__side bdc-versus__side--left <?php echo 'left' === $lead ? 'is-ahead' : ''; ?>"><?php echo esc_html( $l ? $cell( $l, $key, $line[1] ) : '—' ); ?></td>
-									<td class="bdc-versus__side bdc-versus__side--right <?php echo 'right' === $lead ? 'is-ahead' : ''; ?>"><?php echo esc_html( $r ? $cell( $r, $key, $line[1] ) : '—' ); ?></td>
-									<td class="bdc-versus__total"><?php echo esc_html( $cell( $total, $key, $line[1] ) ); ?></td>
-								</tr>
+									$values = array();
+									foreach ( $sides as $side ) {
+										$sum      = $report['couriers'][ $side->id() ];
+										$values[] = 'rate' === $line[1] ? self::success_rate( $sum ) : $sum[ $key ];
+									}
+									// With two couriers, highlight the one ahead on this line (more is better, except returns and money still out).
+									$lead = -1;
+									if ( $pair && null !== $values[0] && null !== $values[1] && $values[0] != $values[1] && in_array( $key, array( 'delivered', 'rate', 'cod_collected', 'returned', 'cod_out' ), true ) ) { // phpcs:ignore
+										$lower_better = in_array( $key, array( 'returned', 'cod_out' ), true );
+										$lead         = ( $values[0] > $values[1] ) !== $lower_better ? 0 : 1;
+									}
+									?>
+									<tr class="<?php echo in_array( $key, array( 'rate', 'cod_all' ), true ) ? 'bdc-reports__divider' : ''; ?>">
+										<th scope="row" class="bdc-versus__metric"><?php echo esc_html( $line[0] ); ?></th>
+										<?php foreach ( $sides as $index => $side ) : ?>
+											<td class="bdc-versus__side <?php echo $index === $lead ? 'is-ahead' : ''; ?>"><?php echo esc_html( $cell( $report['couriers'][ $side->id() ], $key, $line[1] ) ); ?></td>
+										<?php endforeach; ?>
+										<?php if ( count( $sides ) > 1 ) : ?>
+											<td class="bdc-versus__total"><?php echo esc_html( $cell( $total, $key, $line[1] ) ); ?></td>
+										<?php endif; ?>
+									</tr>
 							<?php endforeach; ?>
 						</tbody>
 					</table>

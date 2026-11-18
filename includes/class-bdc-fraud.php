@@ -59,17 +59,11 @@ class BDC_Fraud {
 			'shop'       => self::shop_history( $phone ),
 		);
 
-		foreach ( BDC_Couriers::all() as $courier ) {
-			if ( ! $courier->is_connected() ) {
-				continue;
-			}
-
-			$result = $courier->customer_record( $phone );
+		foreach ( self::lookup_all( $phone ) as $id => $result ) {
 			if ( null === $result ) {
 				continue;
 			}
-
-			$record['couriers'][ $courier->id() ] = is_wp_error( $result )
+			$record['couriers'][ $id ] = is_wp_error( $result )
 				? array( 'error' => $result->get_error_message() )
 				: $result;
 		}
@@ -78,6 +72,82 @@ class BDC_Fraud {
 		set_transient( self::cache_key( $phone ), $record, self::CACHE_HOURS * HOUR_IN_SECONDS );
 
 		return $record;
+	}
+
+	/**
+	 * Asks every active courier about this number at the same time, so the
+	 * check takes as long as the slowest courier instead of all of them added up.
+	 *
+	 * @return array courier id => record|WP_Error|null
+	 */
+	private static function lookup_all( $phone ) {
+		$couriers = array_filter(
+			BDC_Couriers::active(),
+			function ( $courier ) {
+				return $courier->is_active();
+			}
+		);
+		$results  = array();
+		$requests = array();
+
+		foreach ( $couriers as $id => $courier ) {
+			$request = method_exists( $courier, 'customer_record_request' ) ? $courier->customer_record_request( $phone ) : null;
+			if ( is_wp_error( $request ) ) {
+				$results[ $id ] = $request;
+			} elseif ( is_array( $request ) ) {
+				$requests[ $id ] = $request;
+			} else {
+				$results[ $id ] = null;
+			}
+		}
+
+		$multiple = class_exists( 'WpOrg\\Requests\\Requests' ) ? array( 'WpOrg\\Requests\\Requests', 'request_multiple' ) : ( class_exists( 'Requests' ) ? array( 'Requests', 'request_multiple' ) : null );
+
+		if ( count( $requests ) > 1 && $multiple ) {
+			try {
+				$responses = call_user_func(
+					$multiple,
+					$requests,
+					array(
+						'timeout'         => 20,
+						'connect_timeout' => 10,
+						'verify'          => true,
+					)
+				);
+			} catch ( \Throwable $e ) {
+				$responses = array();
+			}
+
+			foreach ( $requests as $id => $request ) {
+				$response = $responses[ $id ] ?? null;
+				$courier  = $couriers[ $id ];
+
+				if ( is_object( $response ) && isset( $response->status_code ) && ! ( $response instanceof \Exception ) ) {
+					$decoded = json_decode( (string) $response->body, true );
+					$parsed  = array(
+						'code' => (int) $response->status_code,
+						'body' => is_array( $decoded ) ? $decoded : array(),
+					);
+					// An expired Pathao token, or anything unexpected: ask that courier again the normal way.
+					$results[ $id ] = 401 === $parsed['code'] ? $courier->customer_record( $phone ) : $courier->parse_customer_record( $parsed );
+				} else {
+					$results[ $id ] = $courier->customer_record( $phone );
+				}
+			}
+		} else {
+			foreach ( $requests as $id => $request ) {
+				$results[ $id ] = $couriers[ $id ]->customer_record( $phone );
+			}
+		}
+
+		// Keep the couriers in their usual order.
+		$ordered = array();
+		foreach ( array_keys( $couriers ) as $id ) {
+			if ( array_key_exists( $id, $results ) ) {
+				$ordered[ $id ] = $results[ $id ];
+			}
+		}
+		return $ordered;
 	}
 
 	/**

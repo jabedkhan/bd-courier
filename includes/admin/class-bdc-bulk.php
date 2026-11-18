@@ -21,7 +21,7 @@ class BDC_Bulk {
 
 	public static function actions( $actions ) {
 		foreach ( BDC_Couriers::all() as $courier ) {
-			if ( $courier->is_connected() ) {
+			if ( $courier->is_active() ) {
 				/* translators: %s: courier name */
 				$actions[ 'bdc_send_' . $courier->id() ] = sprintf( __( 'Send with %s', 'bd-courier' ), $courier->label() );
 			}
@@ -45,8 +45,8 @@ class BDC_Bulk {
 		BDC_Ajax::guard();
 
 		$courier = BDC_Couriers::get( sanitize_key( $_POST['courier'] ?? '' ) ); // phpcs:ignore WordPress.Security.NonceVerification
-		if ( ! $courier || ! $courier->is_connected() ) {
-			wp_send_json_error( array( 'message' => __( 'This courier is not connected yet. Add your credentials in BD Courier settings.', 'bd-courier' ) ), 400 );
+		if ( ! $courier || ! $courier->is_active() ) {
+			wp_send_json_error( array( 'message' => __( 'This courier is turned off or not connected. Check BD Courier settings.', 'bd-courier' ) ), 400 );
 		}
 
 		$ids = isset( $_POST['order_ids'] ) && is_array( $_POST['order_ids'] ) ? array_unique( array_filter( array_map( 'absint', $_POST['order_ids'] ) ) ) : array(); // phpcs:ignore WordPress.Security.NonceVerification
@@ -183,6 +183,7 @@ class BDC_Bulk {
 				<button type="button" class="button bdc-modal__cancel"><?php esc_html_e( 'Cancel', 'bd-courier' ); ?></button>
 				<?php if ( $orders ) : ?>
 					<button type="button" class="button button-primary bdc-bulk__submit">
+						<?php echo BDC_View::truck_icon( 'bdc-form__submit-icon' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 						<?php
 						echo esc_html(
 							sprintf(

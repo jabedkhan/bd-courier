@@ -7,7 +7,7 @@ defined( 'ABSPATH' ) || exit;
 class BDC_Ajax {
 
 	public static function init() {
-		foreach ( array( 'form', 'send', 'edit', 'synced', 'refresh', 'locations', 'score' ) as $action ) {
+		foreach ( array( 'form', 'send', 'synced', 'refresh', 'locations', 'score' ) as $action ) {
 			add_action( 'wp_ajax_bdc_' . $action, array( __CLASS__, $action ) );
 		}
 	}
@@ -41,6 +41,15 @@ class BDC_Ajax {
 
 		if ( ! $courier ) {
 			wp_send_json_error( array( 'message' => __( 'Unknown courier.', 'bd-courier' ) ), 400 );
+		}
+		if ( ! $courier->is_enabled() ) {
+			wp_send_json_error(
+				array(
+					/* translators: %s: courier name */
+					'message' => sprintf( __( '%s is turned off in BD Courier settings.', 'bd-courier' ), $courier->label() ),
+				),
+				400
+			);
 		}
 		if ( ! $courier->is_connected() ) {
 			wp_send_json_error(
@@ -106,133 +115,16 @@ class BDC_Ajax {
 		return $data;
 	}
 
-	/** The send form, or the edit form of a parcel that was already sent. */
+	/** The send form. */
 	public static function form() {
 		self::guard();
 		$order = self::order();
-
-		if ( 'edit' === sanitize_key( $_POST['mode'] ?? '' ) ) { // phpcs:ignore WordPress.Security.NonceVerification
-			list( $shipment, $courier ) = self::sent_parcel( $order );
-
-			if ( ! BDC_Shipment::can_edit( $shipment ) ) {
-				wp_send_json_error( array( 'message' => __( 'This parcel is already finished, so it can no longer be edited.', 'bd-courier' ) ), 400 );
-			}
-
-			wp_send_json_success( array( 'html' => BDC_View::form( $courier, $order, 'edit', $courier->edit_fields( $order, (array) $shipment['details'] ) ) ) );
-		}
 
 		$courier = self::courier();
 		self::already_sent( $order );
 
 		wp_send_json_success( array( 'html' => BDC_View::form( $courier, $order ) ) );
 	}
-
-	/**
-	 * Save changes to a parcel that was already sent.
-	 *
-	 * The couriers do not accept changes through their API, so the parcel is
-	 * flagged until staff confirm they changed it in the courier's own panel.
-	 */
-	public static function edit() {
-		self::guard();
-		$order                      = self::order();
-		list( $shipment, $courier ) = self::sent_parcel( $order );
-
-		if ( ! BDC_Shipment::can_edit( $shipment ) ) {
-			wp_send_json_error( array( 'message' => __( 'This parcel is already finished, so it can no longer be edited.', 'bd-courier' ) ), 400 );
-		}
-
-		$fields = $courier->edit_fields( $order, (array) $shipment['details'] );
-		$posted = self::posted_fields( $fields );
-
-		// The customer tracking link is stored on its own; it is not a parcel detail.
-		$link_saved = false;
-		if ( array_key_exists( 'tracking_link', $posted ) ) {
-			$link = trim( (string) $posted['tracking_link'] );
-			unset( $posted['tracking_link'], $fields['tracking_link'] );
-
-			$test = $shipment;
-			$test['tracking_link'] = esc_url_raw( $link );
-			if ( '' !== $link && '' === $courier->tracking_url( $test ) ) {
-				wp_send_json_error(
-					array(
-						'message' => __( 'Please correct the highlighted fields and try again.', 'bd-courier' ),
-						/* translators: %s: courier name */
-						'fields'  => array( 'tracking_link' => sprintf( __( 'This does not look like a %s tracking link.', 'bd-courier' ), $courier->label() ) ),
-					),
-					400
-				);
-			}
-
-			if ( $test['tracking_link'] !== (string) $shipment['tracking_link'] ) {
-				$shipment['tracking_link'] = $test['tracking_link'];
-				$link_saved                = true;
-			}
-		}
-
-		list( $data, $errors ) = $courier->check( $posted );
-
-		if ( $errors ) {
-			wp_send_json_error(
-				array(
-					'message' => __( 'Please correct the highlighted fields and try again.', 'bd-courier' ),
-					'fields'  => $errors,
-				),
-				400
-			);
-		}
-
-		// What was in the form before, to work out what really changed.
-		$changed = array();
-		foreach ( $data as $key => $value ) {
-			$before = isset( $fields[ $key ]['value'] ) ? (string) $fields[ $key ]['value'] : '';
-			if ( trim( $before ) !== trim( (string) $value ) && ! ( is_numeric( $before ) && is_numeric( $value ) && (float) $before === (float) $value ) ) {
-				$changed[] = trim( preg_replace( '/\s*\(.*\)$/', '', $fields[ $key ]['label'] ) );
-			}
-		}
-
-		if ( ! $changed ) {
-			if ( $link_saved ) {
-				BDC_Shipment::save( $order, $shipment );
-			}
-			wp_send_json_success(
-				array(
-					'message' => $link_saved ? __( 'Tracking link saved.', 'bd-courier' ) : __( 'Nothing was changed.', 'bd-courier' ),
-					'cell'    => BDC_View::cell( wc_get_order( $order->get_id() ) ),
-				)
-			);
-		}
-
-		$shipment['details']   = $data;
-		$shipment['cod']       = (int) round( (float) $data[ $courier->cod_field() ] );
-		$shipment['unsynced']  = true;
-		$shipment['edited_at'] = time();
-		$shipment['imported']  = false;
-		BDC_Shipment::save( $order, $shipment );
-
-		$order->add_order_note(
-			sprintf(
-				/* translators: 1: list of changed fields, 2: courier name */
-				__( 'Parcel details edited (%1$s). Not yet updated on %2$s.', 'bd-courier' ),
-				implode( ', ', $changed ),
-				$courier->label()
-			),
-			false,
-			false
-		);
-
-		wp_send_json_success(
-			array(
-				'message' => sprintf(
-					/* translators: %s: courier name */
-					__( 'Changes saved. Now make the same change in the %s merchant panel.', 'bd-courier' ),
-					$courier->label()
-				),
-				'cell'    => BDC_View::cell( $order ),
-			)
-		);
-	}
-
 	/** Staff confirm the edit was also made in the courier's panel. */
 	public static function synced() {
 		self::guard();

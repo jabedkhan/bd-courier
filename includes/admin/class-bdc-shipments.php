@@ -39,8 +39,8 @@ class BDC_Shipments {
 		$state   = sanitize_key( $text( 'state' ) );
 
 		return array(
-			'courier' => BDC_Couriers::get( $courier ) ? $courier : '',
-			'state'   => 'edited' === $state || '' !== BDC_Statuses::label( $state ) ? $state : '',
+			'courier' => isset( BDC_Couriers::shown()[ $courier ] ) ? $courier : '',
+			'state'   => '' !== BDC_Statuses::label( $state ) ? $state : '',
 			's'       => $text( 's' ),
 			'from'    => $date( 'from' ),
 			'to'      => $date( 'to' ),
@@ -61,17 +61,12 @@ class BDC_Shipments {
 			'relation' => 'AND',
 			array(
 				'key'     => '_bdc_courier',
-				'value'   => $filters['courier'] ? array( $filters['courier'] ) : array_keys( BDC_Couriers::all() ),
+				'value'   => $filters['courier'] ? array( $filters['courier'] ) : array_keys( BDC_Couriers::shown() ),
 				'compare' => 'IN',
 			),
 		);
 
-		if ( 'edited' === $filters['state'] ) {
-			$meta[] = array(
-				'key'   => '_bdc_unsynced',
-				'value' => 'yes',
-			);
-		} elseif ( $filters['state'] ) {
+		if ( $filters['state'] ) {
 			$meta[] = array(
 				'key'   => '_bdc_status',
 				'value' => $filters['state'],
@@ -184,12 +179,14 @@ class BDC_Shipments {
 			</div>
 			<hr class="wp-header-end">
 
+			<?php if ( count( BDC_Couriers::shown() ) > 1 ) : ?>
 			<nav class="bdc-tabs" aria-label="<?php esc_attr_e( 'Courier', 'bd-courier' ); ?>">
 				<a class="<?php echo '' === $filters['courier'] ? 'is-current' : ''; ?>" href="<?php echo esc_url( self::url( array_merge( $base, array( 'courier' => '' ) ) ) ); ?>"><?php esc_html_e( 'All couriers', 'bd-courier' ); ?></a>
-				<?php foreach ( BDC_Couriers::all() as $courier ) : ?>
+				<?php foreach ( BDC_Couriers::shown() as $courier ) : ?>
 					<a class="<?php echo $courier->id() === $filters['courier'] ? 'is-current' : ''; ?>" href="<?php echo esc_url( self::url( array_merge( $base, array( 'courier' => $courier->id() ) ) ) ); ?>"><?php echo esc_html( $courier->label() ); ?></a>
 				<?php endforeach; ?>
 			</nav>
+			<?php endif; ?>
 
 			<div class="bdc-filterbox">
 				<form method="get" class="bdc-shipments__filters">
@@ -204,9 +201,11 @@ class BDC_Shipments {
 					</label>
 
 					<fieldset class="bdc-daterange">
-						<legend><?php esc_html_e( 'Sent', 'bd-courier' ); ?></legend>
+						<legend class="screen-reader-text"><?php esc_html_e( 'Sent', 'bd-courier' ); ?></legend>
+						<span class="bdc-daterange__icon dashicons dashicons-calendar-alt" aria-hidden="true"></span>
+						<span class="bdc-daterange__caption" aria-hidden="true"><?php esc_html_e( 'Sent', 'bd-courier' ); ?></span>
 						<input type="date" name="from" value="<?php echo esc_attr( $filters['from'] ); ?>" aria-label="<?php esc_attr_e( 'Sent from', 'bd-courier' ); ?>">
-						<span aria-hidden="true">&rarr;</span>
+						<span class="bdc-daterange__arrow" aria-hidden="true">&rarr;</span>
 						<input type="date" name="to" value="<?php echo esc_attr( $filters['to'] ); ?>" aria-label="<?php esc_attr_e( 'Sent until', 'bd-courier' ); ?>">
 					</fieldset>
 
@@ -220,7 +219,7 @@ class BDC_Shipments {
 
 				<div class="bdc-chips" role="group" aria-label="<?php esc_attr_e( 'Parcel status', 'bd-courier' ); ?>">
 					<?php
-					$views = array( '' => __( 'All', 'bd-courier' ) ) + BDC_Statuses::all() + array( 'edited' => __( 'Edited, not updated', 'bd-courier' ) );
+					$views = array( '' => __( 'All', 'bd-courier' ) ) + BDC_Statuses::all();
 					foreach ( $views as $state => $label ) {
 						$number = self::count( $filters, $state );
 						if ( ! $number && '' !== $state && $state !== $filters['state'] ) {
@@ -251,17 +250,19 @@ class BDC_Shipments {
 						<th class="bdc-col-money"><?php esc_html_e( 'Delivery fee', 'bd-courier' ); ?></th>
 						<th class="bdc-col-sent"><?php esc_html_e( 'Sent', 'bd-courier' ); ?></th>
 						<th class="bdc-col-actions"><?php esc_html_e( 'Actions', 'bd-courier' ); ?></th>
+						<th class="bdc-col-toggle"><span class="screen-reader-text"><?php esc_html_e( 'Details', 'bd-courier' ); ?></span></th>
 					</tr>
 				</thead>
 				<tbody>
 					<?php if ( ! $orders ) : ?>
 						<tr class="no-items">
-							<td colspan="8">
+							<td colspan="9">
 								<?php
 								if ( $filters['s'] || $filters['from'] || $filters['to'] || $filters['state'] ) {
 									esc_html_e( 'No shipments match these filters.', 'bd-courier' );
 								} else {
-									esc_html_e( 'No shipments yet. Send an order with Pathao or Steadfast from the Orders screen and it will appear here.', 'bd-courier' );
+									/* translators: %s: courier names */
+									echo esc_html( sprintf( __( 'No shipments yet. Send an order with %s from the Orders screen and it will appear here.', 'bd-courier' ), BDC_Couriers::names() ) );
 								}
 								?>
 							</td>
@@ -323,14 +324,14 @@ class BDC_Shipments {
 
 		ob_start();
 		?>
-		<tr class="bdc-shipment" data-order="<?php echo esc_attr( $order->get_id() ); ?>" data-finished="<?php echo BDC_Shipment::can_edit( $shipment ) ? '0' : '1'; ?>">
+		<tr class="bdc-shipment" data-order="<?php echo esc_attr( $order->get_id() ); ?>" data-finished="<?php echo BDC_Shipment::is_open( $shipment ) ? '0' : '1'; ?>">
 			<td class="bdc-col-order" data-label="<?php esc_attr_e( 'Order', 'bd-courier' ); ?>">
 				<a href="<?php echo esc_url( $order->get_edit_order_url() ); ?>"><strong>#<?php echo esc_html( $order->get_order_number() ); ?></strong></a>
 				<span class="bdc-muted"><?php echo esc_html( BDC_View::money( $order->get_total() ) ); ?></span>
 			</td>
 			<td class="bdc-col-customer" data-label="<?php esc_attr_e( 'Customer', 'bd-courier' ); ?>">
 				<?php echo esc_html( $name ); ?>
-				<span class="bdc-muted bdc-block"><?php echo esc_html( $phone ); ?></span>
+				<span class="bdc-muted bdc-block"><span class="bdc-phone" data-phone="<?php echo esc_attr( $phone ); ?>"><?php echo esc_html( $phone ); ?></span></span>
 			</td>
 			<td class="bdc-col-courier" data-label="<?php esc_attr_e( 'Courier', 'bd-courier' ); ?>"><div class="bdc-parcel__top"><?php echo $parts['badge'] . $parts['consignment']; // phpcs:ignore WordPress.Security.EscapeOutput ?></div></td>
 			<td class="bdc-col-status" data-label="<?php esc_attr_e( 'Parcel status', 'bd-courier' ); ?>">
@@ -351,6 +352,11 @@ class BDC_Shipments {
 				<?php echo $shipment['sent_at'] ? esc_html( wp_date( $format, (int) $shipment['sent_at'] ) ) : '&mdash;'; ?>
 			</td>
 			<td class="bdc-col-actions" data-label="<?php esc_attr_e( 'Actions', 'bd-courier' ); ?>"><div class="bdc-parcel__actions"><?php echo $parts['actions']; // phpcs:ignore WordPress.Security.EscapeOutput ?></div></td>
+			<td class="bdc-col-toggle">
+				<button type="button" class="bdc-row-toggle" aria-expanded="false" aria-label="<?php esc_attr_e( 'Show all details', 'bd-courier' ); ?>" title="<?php esc_attr_e( 'Show all details', 'bd-courier' ); ?>">
+					<span class="dashicons dashicons-arrow-down-alt2" aria-hidden="true"></span>
+				</button>
+			</td>
 		</tr>
 		<?php
 		return ob_get_clean();

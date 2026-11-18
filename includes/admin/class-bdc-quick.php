@@ -162,7 +162,10 @@ class BDC_Quick {
 
 			<section class="bdc-quick__section">
 				<h3><?php esc_html_e( 'Private notes', 'bd-courier' ); ?></h3>
-				<p class="bdc-quick__help"><?php esc_html_e( 'Only your team sees these. The newest note is filled in as the note for the rider when you send the order with Pathao or Steadfast.', 'bd-courier' ); ?></p>
+				<p class="bdc-quick__help"><?php
+				/* translators: %s: courier names */
+				echo esc_html( sprintf( __( 'Only your team sees these. The newest note is filled in as the note for the rider when you send the order with %s.', 'bd-courier' ), BDC_Couriers::names() ) );
+				?></p>
 				<div class="bdc-quick__add">
 					<label class="screen-reader-text" for="bdc-note-<?php echo esc_attr( $id ); ?>"><?php esc_html_e( 'New private note', 'bd-courier' ); ?></label>
 					<textarea id="bdc-note-<?php echo esc_attr( $id ); ?>" rows="1" placeholder="<?php esc_attr_e( 'For example: deliver after 5 pm, call before coming', 'bd-courier' ); ?>"></textarea>

@@ -125,7 +125,6 @@ class BDC_Admin {
 				'text'    => array(
 					'loading'      => __( 'Loading…', 'bd-courier' ),
 					'sending'      => __( 'Sending…', 'bd-courier' ),
-					'saving'       => __( 'Saving…', 'bd-courier' ),
 					'waiting'      => __( 'Waiting…', 'bd-courier' ),
 					/* translators: 1: number being refreshed, 2: total */
 					'refreshMany'  => __( 'Refreshing %1$s of %2$s…', 'bd-courier' ),
@@ -143,7 +142,6 @@ class BDC_Admin {
 					'bulkSomeFail' => __( '%1$s sent, %2$s need attention. Correct them and try again.', 'bd-courier' ),
 					/* translators: %s: number of parcels */
 					'bulkRetry'    => __( 'Try again (%s)', 'bd-courier' ),
-					'refreshing'   => __( 'Refreshing…', 'bd-courier' ),
 					'genericError' => __( 'Something went wrong. Please try again.', 'bd-courier' ),
 					'chooseCity'   => __( 'Choose a city first', 'bd-courier' ),
 					'chooseZone'   => __( 'Choose a zone first', 'bd-courier' ),
@@ -153,7 +151,10 @@ class BDC_Admin {
 					'checking'     => __( 'Checking…', 'bd-courier' ),
 					'checkAgain'   => __( 'Check again', 'bd-courier' ),
 					'checkRecord'  => __( 'Check customer record', 'bd-courier' ),
-					'customerHistory' => __( 'Customer history', 'bd-courier' ),
+					'showDetails'  => __( 'Show all details', 'bd-courier' ),
+					'hideDetails'  => __( 'Hide details', 'bd-courier' ),
+					'copyPhone'    => __( 'Copy phone number', 'bd-courier' ),
+					'customerRecord' => __( 'Customer record', 'bd-courier' ),
 					'testAccount'  => __( 'Pathao test account filled in. Click "Save and test connection".', 'bd-courier' ),
 					'chooseLogo'   => __( 'Choose a logo', 'bd-courier' ),
 					'useLogo'      => __( 'Use this logo', 'bd-courier' ),

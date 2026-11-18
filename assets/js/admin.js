@@ -35,12 +35,20 @@
 	/* ---- Updating an order row ---- */
 
 	function updateOrder( orderId, data ) {
+		if ( 'function' === typeof forgetForms ) {
+			forgetForms( orderId );
+		}
 		var $row = $( 'tr.bdc-shipment[data-order="' + orderId + '"]' );
 
 		// Shipments page: redraw the whole row.
 		if ( $row.length ) {
 			return post( 'shipment_row', { order_id: orderId } ).done( function ( response ) {
-				$row.replaceWith( response.data.row );
+				var wasOpen = $row.hasClass( 'is-open' );
+				var $new    = $( response.data.row );
+				$row.replaceWith( $new );
+				if ( wasOpen ) {
+					setRowOpen( $new, true );
+				}
 			} );
 		}
 
@@ -48,8 +56,57 @@
 			$( '.bdc-cell[data-order="' + orderId + '"]' ).replaceWith( data.cell );
 		}
 		if ( data.status ) {
-			$( '#order-' + orderId + ', #post-' + orderId ).find( 'td.column-order_status' ).html( data.status );
+			updateStatusTag( orderId, data.status );
 		}
+	}
+
+	// Orders list: show the new status everywhere on the row straight away.
+	function updateStatusTag( orderId, markHtml ) {
+		var $row = $( '#order-' + orderId + ', #post-' + orderId );
+		if ( ! $row.length ) {
+			$row = $( '.order-preview[data-order-id="' + orderId + '"]' ).closest( 'tr' );
+		}
+		if ( ! $row.length ) {
+			return;
+		}
+
+		var $mark     = $( markHtml );
+		var newStatus = ( ( $mark.attr( 'class' ) || '' ).match( /status-([\w-]+)/ ) || [] )[ 1 ];
+		var oldClass  = ( ( $row.attr( 'class' ) || '' ).match( /\bstatus-(?:wc-)?([\w-]+)/ ) || [] );
+		var oldStatus = oldClass[ 1 ];
+
+		// Status column (desktop) and the tag under the order number (cards / phones).
+		$row.find( 'td.column-order_status' ).html( markHtml );
+		$row.find( '.column-primary .order_status' ).html( markHtml );
+
+		if ( ! newStatus || newStatus === oldStatus ) {
+			return;
+		}
+
+		// Row class, so anything styled by status follows.
+		if ( oldClass[ 0 ] ) {
+			$row.removeClass( oldClass[ 0 ] );
+		}
+		$row.addClass( 'status-' + ( /^status-wc-/.test( oldClass[ 0 ] || '' ) ? 'wc-' : '' ) + newStatus );
+
+		// Status chips above the list: move one from the old count to the new one.
+		bumpStatusCount( oldStatus, -1 );
+		bumpStatusCount( newStatus, 1 );
+	}
+
+	function bumpStatusCount( status, delta ) {
+		if ( ! status ) {
+			return;
+		}
+		var $count = $( '.subsubsub li.wc-' + status + ' .count, .subsubsub li.' + status + ' .count' ).first();
+		if ( ! $count.length ) {
+			return;
+		}
+		var number = parseInt( $count.text().replace( /\D/g, '' ), 10 );
+		if ( isNaN( number ) ) {
+			return;
+		}
+		$count.text( '(' + Math.max( 0, number + delta ) + ')' );
 	}
 
 	/* ---- Popup ---- */
@@ -76,19 +133,86 @@
 		}
 	}
 
-	$( document ).on( 'click', '.bdc-send, .bdc-edit', function ( event ) {
+	/* ---- Send / edit popup: starts loading before the click, opens at once ---- */
+
+	var formCache = {};
+	var FORM_TTL  = 30000;
+
+	function formArgs( $button ) {
+		return {
+			order_id: $button.data( 'order' ),
+			courier: $button.data( 'courier' )
+		};
+	}
+
+	function formRequest( args ) {
+		var key   = args.order_id + '|' + args.courier;
+		var entry = formCache[ key ];
+		if ( entry && Date.now() - entry.time < FORM_TTL ) {
+			return entry.request;
+		}
+		var request = post( 'form', args );
+		formCache[ key ] = { request: request, time: Date.now() };
+		request.fail( function () {
+			delete formCache[ key ];
+		} );
+		return request;
+	}
+
+	function forgetForms( orderId ) {
+		Object.keys( formCache ).forEach( function ( key ) {
+			if ( 0 === key.indexOf( orderId + '|' ) ) {
+				delete formCache[ key ];
+			}
+		} );
+	}
+
+	// Resting the pointer on a button (or touching it) starts loading its form.
+	var prefetchTimer;
+	$( document ).on( 'pointerenter focusin', '.bdc-send', function () {
+		var $button = $( this );
+		clearTimeout( prefetchTimer );
+		prefetchTimer = setTimeout( function () {
+			formRequest( formArgs( $button ) );
+		}, 90 );
+	} );
+	$( document ).on( 'pointerleave', '.bdc-send', function () {
+		clearTimeout( prefetchTimer );
+	} );
+	$( document ).on( 'touchstart', '.bdc-send', function () {
+		formRequest( formArgs( $( this ) ) );
+	} );
+
+	function formSkeleton( $button ) {
+		var label = $.trim( $button.text() ) || bdcText( 'loading', 'Loading…' );
+		var rows  = '';
+		for ( var i = 0; i < 5; i++ ) {
+			rows += '<div class="bdc-skeleton__row"><span class="bdc-skeleton__label"></span><span class="bdc-skeleton__field"></span></div>';
+		}
+		return '<div class="bdc-skeleton" aria-busy="true" aria-live="polite">' +
+			'<div class="bdc-skeleton__head"><span class="bdc-skeleton__badge bdc-skeleton__badge--' + String( $button.data( 'courier' ) || '' ).replace( /[^a-z]/g, '' ) + '"></span>' +
+			'<span class="screen-reader-text"></span></div>' +
+			rows +
+			'<div class="bdc-skeleton__foot"><span class="bdc-skeleton__button"></span></div>' +
+			'</div>';
+	}
+
+	$( document ).on( 'click', '.bdc-send', function ( event ) {
 		event.preventDefault();
 		event.stopPropagation();
+		clearTimeout( prefetchTimer );
 
 		var $button = $( this );
+		var args    = formArgs( $button );
 		openModal();
+		$modal.find( '.bdc-modal__dialog' ).html( formSkeleton( $button ) );
+		$modal.find( '.bdc-skeleton__badge' ).text( $.trim( $button.text() ) );
+		$modal.find( '.bdc-skeleton .screen-reader-text' ).text( text.loading );
 
-		post( 'form', {
-			order_id: $button.data( 'order' ),
-			courier: $button.data( 'courier' ),
-			mode: $button.hasClass( 'bdc-edit' ) ? 'edit' : 'send'
-		} )
+		formRequest( args )
 			.done( function ( response ) {
+				// The form is used once; a fresh one is fetched next time.
+				forgetForms( args.order_id );
 				if ( ! $modal ) {
 					return;
 				}
@@ -212,7 +336,7 @@
 		}
 
 		var $submit = $form.find( '.bdc-form__submit' );
-		var label = $submit.text();
+		var label = $submit.html();
 		var fields = {};
 
 		$.each( $form.serializeArray(), function ( index, item ) {
@@ -221,9 +345,9 @@
 
 		clearErrors( $form );
 		$form.addClass( 'is-sending' );
-		$submit.prop( 'disabled', true ).text( 'edit' === $form.data( 'mode' ) ? text.saving : text.sending );
+		$submit.prop( 'disabled', true ).text( text.sending );
 
-		post( 'edit' === $form.data( 'mode' ) ? 'edit' : 'send', { order_id: $form.data( 'order' ), courier: $form.data( 'courier' ), fields: fields } )
+		post( 'send', { order_id: $form.data( 'order' ), courier: $form.data( 'courier' ), fields: fields } )
 			.done( function ( response ) {
 				updateOrder( $form.data( 'order' ), response.data );
 				closeModal();
@@ -231,7 +355,7 @@
 			} )
 			.fail( function ( xhr ) {
 				$form.removeClass( 'is-sending' );
-				$submit.prop( 'disabled', false ).text( label );
+				$submit.prop( 'disabled', false ).html( label );
 				showErrors( $form, errorOf( xhr ) );
 			} );
 	} );
@@ -317,34 +441,83 @@
 			} );
 	} );
 
-	// After sending, refreshing or editing from inside the quick view, forget WooCommerce's saved copy too.
+	// After sending or refreshing from inside the quick view, forget WooCommerce's saved copy too.
 	$( document ).ajaxSuccess( function ( event, xhr, settings ) {
-		var match = settings && 'string' === typeof settings.data && /action=bdc_(send|refresh|edit|synced)\b/.test( settings.data ) && settings.data.match( /order_id=(\d+)/ );
+		var match = settings && 'string' === typeof settings.data && /action=bdc_(send|refresh|synced)\b/.test( settings.data ) && settings.data.match( /order_id=(\d+)/ );
 		if ( match ) {
 			$( '.order-preview[data-order-id="' + match[ 1 ] + '"]' ).removeData( 'order-data' ).removeData( 'orderData' );
 		}
 	} );
 
-	/* ---- Customer record ---- */
+	/* ---- Customer record: starts loading on hover, shows a placeholder at once ---- */
+
+	var scoreCache = {};
+	var SCORE_TTL  = 60000;
+
+	function scoreRequest( orderId, force, phone ) {
+		var key   = orderId + '|' + ( phone || '' ) + '|' + ( force ? 1 : 0 );
+		var entry = scoreCache[ key ];
+		if ( entry && Date.now() - entry.time < SCORE_TTL ) {
+			return entry.request;
+		}
+		var request = post( 'score', { order_id: orderId, force: force ? 1 : 0, phone: phone || '' } );
+		scoreCache[ key ] = { request: request, time: Date.now() };
+		request.fail( function () {
+			delete scoreCache[ key ];
+		} );
+		return request;
+	}
+
+	function scorePhone( $el ) {
+		return $el.closest( '.bdc-form' ).find( '[name="recipient_phone"]' ).val() || '';
+	}
+
+	function scoreSkeleton() {
+		return '<div class="bdc-score-skeleton" aria-busy="true">' +
+			'<span class="bdc-skeleton__field bdc-score-skeleton__bar"></span>' +
+			'<span class="bdc-skeleton__field bdc-score-skeleton__bar bdc-score-skeleton__bar--short"></span>' +
+			'<span class="bdc-skeleton__field bdc-score-skeleton__bar bdc-score-skeleton__bar--mid"></span>' +
+			'</div>';
+	}
 
 	function loadScore( orderId, force, phone ) {
-		return post( 'score', { order_id: orderId, force: force ? 1 : 0, phone: phone || '' } ).done( function ( response ) {
+		return scoreRequest( orderId, force, phone ).done( function ( response ) {
 			$( '.bdc-score[data-order="' + orderId + '"]' ).replaceWith( response.data.panel );
 			$( '.bdc-score-chip[data-order="' + orderId + '"]' ).replaceWith( response.data.chip );
 		} );
 	}
 
+	// Hovering or touching a check starts it, so the answer is often ready by the click.
+	var scoreTimer;
+	$( document ).on( 'pointerenter focusin', '.bdc-score-check, .bdc-score-open', function () {
+		var $el = $( this );
+		clearTimeout( scoreTimer );
+		scoreTimer = setTimeout( function () {
+			scoreRequest( $el.data( 'order' ), $el.data( 'force' ), $el.hasClass( 'bdc-score-check' ) ? scorePhone( $el ) : '' );
+		}, 90 );
+	} );
+	$( document ).on( 'pointerleave', '.bdc-score-check, .bdc-score-open', function () {
+		clearTimeout( scoreTimer );
+	} );
+	$( document ).on( 'touchstart', '.bdc-score-check, .bdc-score-open', function () {
+		var $el = $( this );
+		scoreRequest( $el.data( 'order' ), $el.data( 'force' ), $el.hasClass( 'bdc-score-check' ) ? scorePhone( $el ) : '' );
+	} );
+
 	// "Check customer record" / "Check again" inside a popup.
 	$( document ).on( 'click', '.bdc-score-check', function ( event ) {
 		event.preventDefault();
+		clearTimeout( scoreTimer );
 
 		var $button = $( this ).prop( 'disabled', true ).text( text.checking );
-		var $panel = $button.closest( '.bdc-score' );
-		// In the send form, check the number as it is typed there.
-		var phone = $panel.closest( '.bdc-form' ).find( '[name="recipient_phone"]' ).val();
+		var $panel  = $button.closest( '.bdc-score' );
+		var phone   = scorePhone( $button );
+
+		$panel.find( '.bdc-score__problem, .bdc-score-skeleton' ).remove();
+		$panel.addClass( 'is-loading' ).append( scoreSkeleton() );
 
 		loadScore( $button.data( 'order' ), $button.data( 'force' ), phone ).fail( function ( xhr ) {
-			$panel.find( '.bdc-score__problem' ).remove();
+			$panel.removeClass( 'is-loading' ).find( '.bdc-score-skeleton' ).remove();
 			$panel.append( $( '<span class="bdc-score__problem bdc-score__error"></span>' ).text( errorOf( xhr ).message ) );
 			$button.prop( 'disabled', false ).text( $button.data( 'force' ) ? text.checkAgain : text.checkRecord );
 		} );
@@ -354,27 +527,31 @@
 	$( document ).on( 'click', '.bdc-score-open', function ( event ) {
 		event.preventDefault();
 		event.stopPropagation();
+		clearTimeout( scoreTimer );
 
 		var orderId = $( this ).data( 'order' );
 		openModal();
 
-		post( 'score', { order_id: orderId } )
+		var $box = $( '<div class="bdc-record"></div>' );
+		$box.append(
+			$( '<header class="bdc-form__header"></header>' ).append(
+				$( '<h2 id="bdc-modal-title"></h2>' ).text( bdcText( 'customerRecord', 'Customer record' ) ),
+				$( '<button type="button" class="bdc-modal__close">&times;</button>' ).attr( 'aria-label', text.close )
+			),
+			$( '<div class="bdc-form__body"></div>' ).html( scoreSkeleton() ),
+			$( '<footer class="bdc-form__footer"><span class="bdc-form__hint"></span></footer>' ).append(
+				$( '<button type="button" class="button bdc-modal__cancel"></button>' ).text( text.close )
+			)
+		);
+		$modal.find( '.bdc-modal__dialog' ).empty().append( $box );
+
+		scoreRequest( orderId, 0, '' )
 			.done( function ( response ) {
 				if ( ! $modal ) {
 					return;
 				}
-				var $box = $( '<div class="bdc-record"></div>' );
-				$box.append(
-					$( '<header class="bdc-form__header"></header>' ).append(
-						$( '<h2 id="bdc-modal-title"></h2>' ).text( response.data.title ),
-						$( '<button type="button" class="bdc-modal__close">&times;</button>' ).attr( 'aria-label', text.close )
-					),
-					$( '<div class="bdc-form__body"></div>' ).html( response.data.panel ),
-					$( '<footer class="bdc-form__footer"><span class="bdc-form__hint"></span></footer>' ).append(
-						$( '<button type="button" class="button bdc-modal__cancel"></button>' ).text( text.close )
-					)
-				);
-				$modal.find( '.bdc-modal__dialog' ).empty().append( $box );
+				$modal.find( '#bdc-modal-title' ).text( response.data.title );
+				$modal.find( '.bdc-record .bdc-form__body' ).html( response.data.panel );
 				$( '.bdc-score-chip[data-order="' + orderId + '"]' ).replaceWith( response.data.chip );
 			} )
 			.fail( function ( xhr ) {
@@ -745,5 +922,179 @@
 		setTimeout( function () {
 			$button.text( label );
 		}, 1500 );
+	} );
+
+	// Date ranges: open the calendar from anywhere on the field.
+	$( document ).on( 'click', '.bdc-daterange input[type="date"]', function () {
+		if ( typeof this.showPicker === 'function' ) {
+			try {
+				this.showPicker();
+			} catch ( e ) {}
+		}
+	} );
+	$( document ).on( 'click', '.bdc-daterange__icon', function () {
+		$( this ).closest( '.bdc-daterange' ).find( 'input[type="date"]' ).first().trigger( 'click' ).trigger( 'focus' );
+	} );
+
+	/* ---- Shipments as cards: tap a card or its arrow to see every detail ---- */
+
+	function setRowOpen( $row, open ) {
+		$row.toggleClass( 'is-open', open );
+		$row.find( '.bdc-row-toggle' )
+			.attr( 'aria-expanded', open ? 'true' : 'false' )
+			.attr( 'aria-label', open ? bdcText( 'hideDetails', 'Hide details' ) : bdcText( 'showDetails', 'Show all details' ) )
+			.attr( 'title', open ? bdcText( 'hideDetails', 'Hide details' ) : bdcText( 'showDetails', 'Show all details' ) );
+	}
+
+	function bdcText( key, fallback ) {
+		var strings = ( window.bdcAdmin && window.bdcAdmin.text ) || {};
+		return strings[ key ] || fallback;
+	}
+
+	function cardMode( $row ) {
+		var toggle = $row.find( '.bdc-col-toggle' )[ 0 ];
+		return toggle && window.getComputedStyle( toggle ).display !== 'none';
+	}
+
+	$( document ).on( 'click', '.bdc-row-toggle', function ( event ) {
+		event.preventDefault();
+		event.stopPropagation();
+		var $row = $( this ).closest( 'tr.bdc-shipment' );
+		setRowOpen( $row, ! $row.hasClass( 'is-open' ) );
+	} );
+
+	$( document ).on( 'click', 'tr.bdc-shipment', function ( event ) {
+		var $row = $( this );
+		if ( ! cardMode( $row ) || $( event.target ).closest( 'a, button, input, select, textarea, label' ).length ) {
+			return;
+		}
+		if ( window.getSelection && String( window.getSelection() ) ) {
+			return; // Staff were selecting text, e.g. to copy a phone number.
+		}
+		setRowOpen( $row, ! $row.hasClass( 'is-open' ) );
+	} );
+
+	/* ---- Orders list on phones: an arrow opens each card ---- */
+
+	function addOrderToggles() {
+		$( 'body.post-type-shop_order.edit-php, body.woocommerce_page_wc-orders' ).find( '#the-list tr:not(.no-items)' ).each( function () {
+			var $row     = $( this );
+			var $primary = $row.children( '.column-primary' );
+			if ( ! $primary.length || $primary.children( '.bdc-row-toggle' ).length ) {
+				return;
+			}
+			var $button = $( '<button type="button" class="bdc-row-toggle" aria-expanded="false"><span class="dashicons dashicons-arrow-down-alt2" aria-hidden="true"></span></button>' )
+				.attr( 'aria-label', bdcText( 'showDetails', 'Show all details' ) )
+				.attr( 'title', bdcText( 'showDetails', 'Show all details' ) );
+			// Bound on the button itself so WooCommerce's "click the row to open the order" never fires.
+			$button.on( 'click', function ( event ) {
+				event.preventDefault();
+				event.stopPropagation();
+				var open = ! $row.hasClass( 'bdc-open' );
+				$row.toggleClass( 'bdc-open is-open', open );
+				$button
+					.attr( 'aria-expanded', open ? 'true' : 'false' )
+					.attr( 'aria-label', open ? bdcText( 'hideDetails', 'Hide details' ) : bdcText( 'showDetails', 'Show all details' ) )
+					.attr( 'title', open ? bdcText( 'hideDetails', 'Hide details' ) : bdcText( 'showDetails', 'Show all details' ) );
+			} );
+			$primary.append( $button );
+		} );
+	}
+
+	$( addOrderToggles );
+
+	/* ---- A tiny copy button beside every phone number ---- */
+
+	var COPY_ICON  = '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>';
+	var COPIED_ICON = '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 6 9 17l-5-5"/></svg>';
+
+	function phoneOf( el ) {
+		var $el = $( el );
+		var raw = $el.data( 'phone' ) || ( ( $el.attr( 'href' ) || '' ).indexOf( 'tel:' ) === 0 ? $el.attr( 'href' ).slice( 4 ) : '' ) || $el.text();
+		return String( raw ).replace( /[^\d+]/g, '' );
+	}
+
+	function addCopyButtons() {
+		var selector = [
+			'.wp-list-table a[href^="tel:"]',
+			'.bdc-page .bdc-phone',
+			'.bdc-page a[href^="tel:"]',
+			'.wc-order-preview a[href^="tel:"]',
+			'.bdc-quick a[href^="tel:"]',
+			'.bdc-modal a[href^="tel:"]',
+			'#order_data a[href^="tel:"]'
+		].join( ',' );
+
+		$( selector ).each( function () {
+			var $phone = $( this );
+			var number = phoneOf( this );
+			if ( $phone.data( 'bdcCopy' ) || number.replace( /\D/g, '' ).length < 6 ) {
+				return;
+			}
+			$phone.data( 'bdcCopy', true );
+
+			var label   = bdcText( 'copyPhone', 'Copy phone number' );
+			var $button = $( '<button type="button" class="bdc-copy-phone"></button>' )
+				.attr( { 'aria-label': label, title: label } )
+				.html( COPY_ICON );
+
+			// Bound on the button itself so WooCommerce's row click never opens the order.
+			$button.on( 'click', function ( event ) {
+				event.preventDefault();
+				event.stopPropagation();
+				copyText( number ).then( function () {
+					$button.addClass( 'is-copied' ).html( COPIED_ICON ).attr( 'title', bdcText( 'copied', 'Copied' ) );
+					setTimeout( function () {
+						$button.removeClass( 'is-copied' ).html( COPY_ICON ).attr( 'title', label );
+					}, 1400 );
+				} );
+			} );
+
+			// Phone and button share one line of their own.
+			$phone.addClass( 'bdc-has-copy' ).wrap( '<span class="bdc-phone-line"></span>' ).after( $button );
+		} );
+	}
+
+	function copyText( text ) {
+		var done = $.Deferred();
+		if ( navigator.clipboard && window.isSecureContext ) {
+			navigator.clipboard.writeText( text ).then( done.resolve, function () {
+				copyFallback( text );
+				done.resolve();
+			} );
+			return done.promise();
+		}
+		copyFallback( text );
+		return done.resolve().promise();
+	}
+
+	function copyFallback( text ) {
+		var $area = $( '<textarea readonly></textarea>' ).val( text ).css( { position: 'fixed', top: '-1000px', opacity: 0 } ).appendTo( 'body' );
+		$area[ 0 ].select();
+		try {
+			document.execCommand( 'copy' );
+		} catch ( e ) {}
+		$area.remove();
+	}
+
+	// Run once the page has settled (other scripts move the phone first), and again when rows,
+	// the quick view or popups add new phone numbers.
+	$( function () {
+		setTimeout( addCopyButtons, 0 );
+		var timer;
+		if ( window.MutationObserver ) {
+			new MutationObserver( function ( mutations ) {
+				// Only look again when real elements were added (not text or our own buttons).
+				var added = mutations.some( function ( mutation ) {
+					return Array.prototype.some.call( mutation.addedNodes, function ( node ) {
+						return 1 === node.nodeType && ! ( node.classList && node.classList.contains( 'bdc-copy-phone' ) ) && ! ( node.classList && node.classList.contains( 'bdc-phone-line' ) );
+					} );
+				} );
+				if ( added ) {
+					clearTimeout( timer );
+					timer = setTimeout( addCopyButtons, 60 );
+				}
+			} ).observe( document.body, { childList: true, subtree: true } );
+		}
 	} );
 } )( jQuery );

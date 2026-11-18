@@ -42,7 +42,6 @@ Pathao and Steadfast stay completely separate: their own credentials, settings, 
 - A quick view (the eye icon) with every status as one-click buttons, the courier summary, and private notes.
 - Private team notes; the newest one is filled in as the rider note when sending.
 - The customer's phone number under their name in the Orders list, and search by phone number or consignment ID.
-- Edit a parcel after sending (see [Good to know](#good-to-know)).
 
 **More**
 - Customer record check ("fraud score"): how often this phone number accepted deliveries, per courier and in your own shop.
@@ -136,7 +135,7 @@ In **Settings → Branding**: set the name shown in the menu, an accent colour, 
    - The customer's delivery record is shown at the top; click **Check customer record** to look it up.
 4. Click **Send with Pathao** / **Send with Steadfast**.
 
-The Courier column then shows the courier, consignment ID, status, cash to collect and fee, with small buttons to **refresh**, **edit**, **track** and **print**.
+The Courier column then shows the courier, consignment ID, status, cash to collect and fee, with small buttons to **refresh**, **track** and **print**.
 
 **Cash to collect** is filled in for you: the order total for cash-on-delivery orders, and 0 for orders already paid online.
 
@@ -162,20 +161,15 @@ Click the eye icon next to an order in the Orders list to:
 
 Private notes are WooCommerce's own private order notes — only your team sees them. Add one from the quick view (or the Order notes box on the order page). The **newest** private note is filled in automatically as the **note for the rider** when you send the order, and you can still edit it before sending.
 
-### Edit a parcel after sending
+### Changing a parcel after sending
 
-Click the **edit** (pencil) button on a sent parcel. Neither courier accepts changes from outside its own panel, so:
-1. Your changes are saved in your dashboard and the parcel is marked **"Edited here, not on Pathao/Steadfast yet"**.
-2. Make the same change in the courier's merchant panel.
-3. Click **Mark as updated**.
-
-Delivered, returned and cancelled parcels can't be edited.
+Neither Pathao nor Steadfast lets other software change a parcel once it is booked, so BD Courier has no edit button. Make changes in the courier's own merchant panel; the **track** button on a parcel opens it there when there is no public tracking link.
 
 ### Shipments page
 
 **BD Courier → Shipments** lists every parcel from both couriers:
 - Tabs for **All couriers**, **Pathao** and **Steadfast**.
-- Status filters with counts (In Transit, Delivered, Edited not updated, …).
+- Status filters with counts (In Transit, Delivered, …).
 - Search by order number, consignment ID, customer name or phone; filter by the date sent.
 - **Refresh statuses** asks the couriers for the latest status of every unfinished parcel on the page.
 - **Print this page** prints invoices or labels for every parcel shown.
@@ -271,7 +265,7 @@ Parcels from the official plugins appear in the Orders list but not on the Shipm
 ## Good to know
 
 - **Nothing is sent automatically.** Every parcel is sent by a person clicking a button. The scheduled check only reads statuses.
-- **Editing a sent parcel** is saved in your dashboard and flagged; it is not sent to the courier, because neither courier's API accepts changes. Make the same change in the courier's panel.
+- **Sent parcels cannot be edited here**, because neither courier's API accepts changes. Make changes in the courier's own merchant panel.
 - **Bulk send** runs in the open popup. If the browser tab is closed part-way, the remaining orders are simply not sent and still show their send buttons.
 - **Pathao city and zone** are chosen by Pathao from the address in bulk send; send an order on its own to choose them yourself.
 - **The scheduled check** uses WordPress's background tasks (WP-Cron). On a very quiet site, checks can run late.

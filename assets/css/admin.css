@@ -1243,11 +1243,6 @@ td.bdc-bulk__result {
 	color: var(--bdc-muted);
 }
 
-.bdc-shipments__search input {
-	width: 270px;
-	max-width: 100%;
-}
-
 .bdc-shipments__tools {
 	display: inline-flex;
 	align-items: center;
@@ -1333,26 +1328,6 @@ td.bdc-bulk__result {
 /* =========================================================
    Reports
    ========================================================= */
-
-.bdc-reports__presets {
-	display: inline-flex;
-	flex-wrap: wrap;
-	gap: 4px;
-	margin-right: 8px;
-}
-
-.bdc-reports__presets .button-primary {
-	border-color: var(--bdc-accent);
-	background: var(--bdc-accent-soft);
-	color: var(--bdc-accent-dark);
-}
-
-.bdc-reports__presets .button-primary:hover,
-.bdc-reports__presets .button-primary:focus {
-	border-color: var(--bdc-accent);
-	background: var(--bdc-accent-soft);
-	color: var(--bdc-accent-dark);
-}
 
 .bdc-reports__period {
 	margin: 0 0 12px;
@@ -2373,9 +2348,7 @@ a.bdc-card {
 		min-width: 0;
 	}
 
-	.bdc-shipments__search input {
-		width: 100%;
-	}
+	
 
 	.bdc-shipments__tools {
 		flex-wrap: wrap;
@@ -3633,7 +3606,6 @@ td.column-bdc_courier .bdc-consignment {
 	font-size: 11px;
 }
 
-
 /* ---- Orders list: always as wide as the page, never wider ----
    Fixed column shares instead of WooCommerce's widths or content-based widths,
    so long names or addresses wrap inside their column instead of pushing the
@@ -4013,14 +3985,6 @@ td.column-bdc_courier .bdc-consignment {
 	color: var(--bdc-ink);
 }
 
-.bdc-versus .bdc-versus__side--left {
-	text-align: right;
-}
-
-.bdc-versus .bdc-versus__side--right {
-	text-align: left;
-}
-
 .bdc-versus thead .bdc-versus__side .bdc-badge {
 	padding: 3px 14px;
 	font-size: 13px;
@@ -4049,20 +4013,8 @@ td.column-bdc_courier .bdc-consignment {
 	text-align: right !important;
 }
 
-.bdc-versus td.bdc-versus__side--left {
-	box-shadow: inset -3px 0 0 transparent;
-}
-
 .bdc-versus td.is-ahead {
 	color: var(--bdc-good);
-}
-
-.bdc-versus td.bdc-versus__side--left.is-ahead {
-	background: linear-gradient(to left, var(--bdc-good-bg), transparent 70%);
-}
-
-.bdc-versus td.bdc-versus__side--right.is-ahead {
-	background: linear-gradient(to right, var(--bdc-good-bg), transparent 70%);
 }
 
 .bdc-versus td.is-ahead::after {
@@ -4096,8 +4048,6 @@ td.column-bdc_courier .bdc-consignment {
 /* Side by side: measure names first, everything aligned to the left. */
 .bdc-versus th,
 .bdc-versus td,
-.bdc-versus .bdc-versus__side--left,
-.bdc-versus .bdc-versus__side--right,
 .bdc-versus .bdc-versus__metric,
 .bdc-versus .bdc-versus__total {
 	text-align: left !important;
@@ -4117,7 +4067,2866 @@ td.column-bdc_courier .bdc-consignment {
 	width: 20%;
 }
 
-.bdc-versus td.bdc-versus__side--left.is-ahead,
-.bdc-versus td.bdc-versus__side--right.is-ahead {
+.bdc-versus td.is-ahead {
 	background: linear-gradient(to right, var(--bdc-good-bg), transparent 70%);
+}
+
+/* Only one courier in use: the measure and its value. */
+.bdc-versus--single .bdc-versus__metric {
+	width: 40%;
+}
+
+.bdc-versus--single .bdc-versus__side {
+	width: auto;
+}
+
+/* Report headline numbers: full rows at every width, no card left alone. */
+.bdc-reports .bdc-stats {
+	grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.bdc-reports .bdc-stat {
+	min-width: 0;
+}
+
+.bdc-reports .bdc-stat__value {
+	font-size: clamp(18px, 1.5vw, 22px);
+	white-space: normal;
+}
+
+@media (max-width: 1279px) {
+	/* Three on the first row, two wider ones on the second. */
+	.bdc-reports .bdc-stats {
+		grid-template-columns: repeat(6, minmax(0, 1fr));
+	}
+
+	.bdc-reports .bdc-stat {
+		grid-column: span 2;
+	}
+
+	.bdc-reports .bdc-stat:nth-child(n+4) {
+		grid-column: span 3;
+	}
+}
+
+@media (max-width: 782px) {
+	/* Two per row; the last one takes the full row. */
+	.bdc-reports .bdc-stats {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.bdc-reports .bdc-stat,
+	.bdc-reports .bdc-stat:nth-child(n+4) {
+		grid-column: auto;
+	}
+
+	.bdc-reports .bdc-stat:last-child:nth-child(odd) {
+		grid-column: 1 / -1;
+	}
+}
+
+@media (max-width: 420px) {
+	.bdc-reports .bdc-stats {
+		grid-template-columns: 1fr;
+	}
+}
+
+/* ---- No visible scroll bars: areas still scroll by swipe, wheel or trackpad. ---- */
+.bdc-page,
+.bdc-page *,
+[class*="bdc-"] {
+	scrollbar-width: none;
+	-ms-overflow-style: none;
+}
+
+.bdc-page::-webkit-scrollbar,
+.bdc-page *::-webkit-scrollbar,
+[class*="bdc-"]::-webkit-scrollbar {
+	display: none;
+	width: 0;
+	height: 0;
+}
+
+.bdc-segment {
+	-webkit-overflow-scrolling: touch;
+	scroll-snap-type: x proximity;
+}
+
+.bdc-segment a {
+	flex: 0 0 auto;
+	scroll-snap-align: start;
+	white-space: nowrap;
+}
+
+/* ---- Date range: one soft, rounded control with a calendar icon. ---- */
+.bdc-daterange {
+	gap: 8px;
+	min-height: 42px;
+	padding: 4px 6px 4px 12px;
+	border: 1px solid var(--bdc-line);
+	border-radius: 12px;
+	background: var(--bdc-surface);
+	box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.bdc-daterange:hover {
+	border-color: var(--bdc-line-strong);
+}
+
+.bdc-daterange:focus-within {
+	border-color: var(--bdc-accent);
+	background: var(--bdc-surface);
+	box-shadow: 0 0 0 3px var(--bdc-accent-soft);
+}
+
+.bdc-daterange__icon {
+	flex: none;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 30px;
+	height: 30px;
+	border-radius: 8px;
+	background: var(--bdc-accent-soft);
+	color: var(--bdc-accent-dark);
+	font-size: 17px;
+	line-height: 30px;
+}
+
+.bdc-daterange__arrow {
+	flex: none;
+	color: var(--bdc-line-strong);
+	font-size: 14px;
+}
+
+.bdc-daterange input[type="date"] {
+	min-height: 32px;
+	padding: 0 4px;
+	border: 0 !important;
+	border-radius: 6px;
+	background: transparent !important;
+	box-shadow: none !important;
+	color: var(--bdc-ink);
+	font-size: 14px;
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+	cursor: pointer;
+}
+
+.bdc-daterange input[type="date"]:hover {
+	background: var(--bdc-soft) !important;
+}
+
+.bdc-daterange input[type="date"]::-webkit-calendar-picker-indicator {
+	opacity: 0;
+	width: 0;
+	margin: 0;
+	padding: 0;
+}
+
+/* Reports: small caption above each date. */
+
+.bdc-reports__dates {
+	gap: 10px;
+}
+
+.bdc-reports__apply {
+	min-height: 42px !important;
+	padding: 0 20px !important;
+	border-radius: 10px !important;
+}
+
+@media (max-width: 782px) {
+	.bdc-reports__dates {
+		flex-direction: column;
+		align-items: stretch;
+		width: 100%;
+	}
+
+	.bdc-daterange {
+		width: 100%;
+		box-sizing: border-box;
+	}
+
+	
+
+	.bdc-daterange input[type="date"] {
+		font-size: 15px;
+	}
+}
+
+@media (max-width: 782px) {
+	/* The calendar icon says it all; keep "Sent" for screen readers only. */
+	.bdc-shipments__filters .bdc-daterange legend {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+	}
+}
+
+/* ---- Shipments filter bar: one height, one look ---- */
+.bdc-filterbox {
+	--bdc-field-h: 44px;
+	container-type: inline-size;
+}
+
+.bdc-filterbox .bdc-shipments__filters {
+	display: grid;
+	grid-template-columns: minmax(220px, 1fr) auto auto;
+	align-items: center;
+	gap: 10px;
+	padding: 14px;
+}
+
+.bdc-filterbox .bdc-search,
+.bdc-filterbox .bdc-daterange,
+.bdc-filterbox .bdc-filterbox__buttons {
+	width: auto;
+	min-width: 0;
+	margin: 0;
+}
+
+/* Search: same white rounded box as the dates, with its icon in a soft square. */
+.bdc-filterbox .bdc-search .dashicons {
+	left: 7px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 30px;
+	height: 30px;
+	border-radius: 8px;
+	background: var(--bdc-accent-soft);
+	color: var(--bdc-accent-dark);
+	font-size: 17px;
+	line-height: 30px;
+}
+
+.bdc-filterbox .bdc-search input[type="search"] {
+	box-sizing: border-box;
+	height: var(--bdc-field-h);
+	min-height: var(--bdc-field-h);
+	padding: 0 14px 0 46px;
+	border: 1px solid var(--bdc-line);
+	border-radius: 12px;
+	background: var(--bdc-surface);
+	box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
+	color: var(--bdc-ink);
+	font-size: 14px;
+	text-overflow: ellipsis;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.bdc-filterbox .bdc-search input[type="search"]::placeholder {
+	color: var(--bdc-muted);
+	opacity: 1;
+}
+
+.bdc-filterbox .bdc-search input[type="search"]:hover {
+	border-color: var(--bdc-line-strong);
+}
+
+.bdc-filterbox .bdc-search input[type="search"]:focus {
+	border-color: var(--bdc-accent);
+	background: var(--bdc-surface);
+	box-shadow: 0 0 0 3px var(--bdc-accent-soft);
+	outline: none;
+}
+
+/* Dates: exactly the search box's height. */
+.bdc-filterbox .bdc-daterange {
+	box-sizing: border-box;
+	height: var(--bdc-field-h);
+	min-height: var(--bdc-field-h);
+	padding: 0 8px 0 7px;
+	gap: 6px;
+}
+
+.bdc-filterbox .bdc-daterange legend {
+	float: none;
+	order: 0;
+	margin: 0 2px 0 4px;
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--bdc-muted);
+}
+
+.bdc-filterbox .bdc-daterange__icon {
+	order: -1;
+}
+
+.bdc-filterbox .bdc-daterange input[type="date"] {
+	flex: 0 0 auto;
+	width: 118px;
+	min-width: 0;
+	height: 32px;
+	min-height: 32px;
+}
+
+/* Buttons: same height, rounded to match. */
+.bdc-filterbox .bdc-filterbox__buttons {
+	display: flex;
+	gap: 8px;
+}
+
+.bdc-filterbox .bdc-filterbox__buttons .button {
+	box-sizing: border-box;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	height: var(--bdc-field-h);
+	min-height: var(--bdc-field-h);
+	padding: 0 22px;
+	border-radius: 12px;
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 1;
+}
+
+/* Medium widths: search on its own row, dates and buttons below. */
+@container (max-width: 860px) {
+	.bdc-filterbox .bdc-shipments__filters {
+		grid-template-columns: 1fr auto;
+	}
+
+	.bdc-filterbox .bdc-search {
+		grid-column: 1 / -1;
+	}
+
+	.bdc-filterbox .bdc-daterange {
+		width: 100%;
+	}
+
+	.bdc-filterbox .bdc-daterange input[type="date"] {
+		flex: 1 1 0;
+		width: 0;
+	}
+}
+
+/* Narrow: everything stacked, full width. */
+@container (max-width: 520px) {
+	.bdc-filterbox .bdc-shipments__filters {
+		grid-template-columns: 1fr;
+	}
+
+	.bdc-filterbox .bdc-filterbox__buttons .button {
+		flex: 1;
+	}
+}
+
+.bdc-filterbox .bdc-daterange__caption {
+	flex: none;
+	margin: 0 2px;
+	color: var(--bdc-muted);
+	font-size: 12px;
+	font-weight: 600;
+}
+
+@media (max-width: 782px) {
+	.bdc-filterbox .bdc-daterange__caption {
+		display: none;
+	}
+}
+
+/* ---- Shipments: the details arrow exists only in card view ---- */
+.bdc-shipments__table .bdc-col-toggle {
+	display: none;
+}
+
+.bdc-row-toggle {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 34px;
+	height: 34px;
+	margin: 0;
+	padding: 0;
+	border: 1px solid var(--bdc-line);
+	border-radius: 10px;
+	background: var(--bdc-surface);
+	color: var(--bdc-muted);
+	cursor: pointer;
+	transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.bdc-row-toggle:hover,
+.bdc-row-toggle:focus-visible {
+	border-color: var(--bdc-accent);
+	background: var(--bdc-accent-soft);
+	color: var(--bdc-accent-dark);
+	outline: none;
+}
+
+.bdc-row-toggle .dashicons {
+	width: 18px;
+	height: 18px;
+	font-size: 18px;
+	transition: transform 0.2s ease;
+}
+
+.is-open .bdc-row-toggle .dashicons {
+	transform: rotate(180deg);
+}
+
+/* Card view: one card per row. Closed cards show a short summary;
+   tap the card or its arrow to see every detail. */
+@container bdc-list (max-width: 940px) {
+	.bdc-shipments__table tbody {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr);
+		gap: 10px;
+	}
+
+	.bdc-shipments__table tbody tr.bdc-shipment {
+		position: relative;
+		margin: 0;
+		cursor: pointer;
+		transition: border-color 0.15s ease, box-shadow 0.15s ease;
+	}
+
+	.bdc-shipments__table tbody tr.bdc-shipment:hover {
+		border-color: var(--bdc-line-strong);
+	}
+
+	.bdc-shipments__table tbody tr.bdc-shipment.is-open {
+		border-color: var(--bdc-accent);
+		box-shadow: 0 0 0 3px var(--bdc-accent-soft), var(--bdc-shadow);
+		cursor: default;
+	}
+
+	.bdc-shipments__table tbody tr.bdc-shipment td.bdc-col-toggle {
+		display: block;
+		position: absolute;
+		top: 12px;
+		right: 12px;
+		padding: 0 !important;
+		border: 0 !important;
+	}
+
+	.bdc-shipments__table tbody tr.bdc-shipment td.bdc-col-toggle::before {
+		display: none;
+	}
+
+	/* Open: room on the first line for the arrow. */
+	.bdc-shipments__table tbody tr.bdc-shipment.is-open td.bdc-col-order {
+		padding-right: 44px !important;
+	}
+
+	/* Closed: a two-line summary. */
+	.bdc-shipments__table tbody tr.bdc-shipment:not(.is-open) {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+		grid-template-areas:
+			"order    status"
+			"customer courier";
+		gap: 8px 16px;
+		padding: 14px 58px 14px 16px;
+	}
+
+	.bdc-shipments__table tbody tr.bdc-shipment:not(.is-open) td {
+		display: block;
+		padding: 0 !important;
+		border: 0 !important;
+		min-width: 0;
+	}
+
+	.bdc-shipments__table tbody tr.bdc-shipment:not(.is-open) td::before {
+		display: none;
+	}
+
+	.bdc-shipments__table tbody tr.bdc-shipment:not(.is-open) .bdc-col-order {
+		grid-area: order;
+		display: flex;
+		align-items: baseline;
+		gap: 8px;
+	}
+
+	.bdc-shipments__table tbody tr.bdc-shipment:not(.is-open) .bdc-col-order a {
+		font-size: 15px;
+	}
+
+	.bdc-shipments__table tbody tr.bdc-shipment:not(.is-open) .bdc-col-customer {
+		grid-area: customer;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap !important;
+	}
+
+	.bdc-shipments__table tbody tr.bdc-shipment:not(.is-open) .bdc-col-customer .bdc-block {
+		display: inline;
+		margin-left: 6px;
+	}
+
+	.bdc-shipments__table tbody tr.bdc-shipment:not(.is-open) .bdc-col-status {
+		grid-area: status;
+	}
+
+	.bdc-shipments__table tbody tr.bdc-shipment:not(.is-open) .bdc-col-status .bdc-block,
+	.bdc-shipments__table tbody tr.bdc-shipment:not(.is-open) .bdc-col-status .bdc-flag {
+		display: none;
+	}
+
+	.bdc-shipments__table tbody tr.bdc-shipment:not(.is-open) .bdc-col-courier {
+		grid-area: courier;
+	}
+
+	.bdc-shipments__table tbody tr.bdc-shipment:not(.is-open) .bdc-col-money,
+	.bdc-shipments__table tbody tr.bdc-shipment:not(.is-open) .bdc-col-sent,
+	.bdc-shipments__table tbody tr.bdc-shipment:not(.is-open) .bdc-col-actions {
+		display: none;
+	}
+
+	.bdc-shipments__table tbody tr.bdc-shipment:not(.is-open) td.bdc-col-toggle {
+		top: 50%;
+		transform: translateY(-50%);
+	}
+}
+
+/* Very narrow: the summary stacks into one column. */
+@container bdc-list (max-width: 420px) {
+	.bdc-shipments__table tbody tr.bdc-shipment:not(.is-open) {
+		grid-template-columns: minmax(0, 1fr);
+		grid-template-areas:
+			"order"
+			"customer"
+			"courier"
+			"status";
+		gap: 6px;
+	}
+}
+
+/* Closed card: status and courier sit at the right, next to the arrow. */
+@container bdc-list (min-width: 421px) and (max-width: 940px) {
+	.bdc-shipments__table tbody tr.bdc-shipment:not(.is-open) {
+		grid-template-columns: minmax(0, 1fr) auto;
+	}
+
+	.bdc-shipments__table tbody tr.bdc-shipment:not(.is-open) .bdc-col-status,
+	.bdc-shipments__table tbody tr.bdc-shipment:not(.is-open) .bdc-col-courier {
+		justify-self: end;
+		text-align: right !important;
+	}
+
+	.bdc-shipments__table tbody tr.bdc-shipment:not(.is-open) .bdc-col-courier .bdc-parcel__top {
+		justify-content: flex-end;
+	}
+}
+
+/* Closed card: more breathing room between the status and the arrow. */
+@container bdc-list (min-width: 421px) and (max-width: 940px) {
+	.bdc-shipments__table tbody tr.bdc-shipment:not(.is-open) {
+		padding-right: 84px;
+	}
+
+	.bdc-shipments__table tbody tr.bdc-shipment td.bdc-col-toggle {
+		right: 18px;
+	}
+}
+
+/* ---- Reports: the same date field as Shipments ---- */
+.bdc-reports__filters {
+	--bdc-field-h: 44px;
+}
+
+.bdc-reports__filters .bdc-daterange {
+	box-sizing: border-box;
+	flex: 0 1 auto;
+	height: var(--bdc-field-h);
+	min-height: var(--bdc-field-h);
+	padding: 0 8px 0 7px;
+	gap: 6px;
+}
+
+.bdc-reports__filters .bdc-daterange__caption {
+	flex: none;
+	margin: 0 2px;
+	color: var(--bdc-muted);
+	font-size: 12px;
+	font-weight: 600;
+}
+
+.bdc-reports__filters .bdc-daterange input[type="date"] {
+	flex: 0 0 auto;
+	width: 118px;
+	min-width: 0;
+	height: 32px;
+	min-height: 32px;
+	line-height: normal;
+}
+
+.bdc-reports__filters .bdc-reports__apply,
+.bdc-reports__filters .bdc-reports__csv {
+	box-sizing: border-box;
+	display: inline-flex !important;
+	align-items: center;
+	justify-content: center;
+	height: var(--bdc-field-h);
+	min-height: var(--bdc-field-h) !important;
+	padding: 0 22px !important;
+	border-radius: 12px !important;
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 1;
+}
+
+.bdc-reports__filters .bdc-reports__dates {
+	flex-direction: row;
+	align-items: center;
+}
+
+@media (max-width: 782px) {
+	.bdc-reports__filters .bdc-reports__dates {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.bdc-reports__filters .bdc-daterange {
+		width: 100%;
+	}
+
+	.bdc-reports__filters .bdc-daterange input[type="date"] {
+		flex: 1 1 0;
+		width: 0;
+	}
+
+	.bdc-reports__filters .bdc-daterange__caption {
+		display: none;
+	}
+}
+
+.bdc-reports__filters .bdc-segment {
+	box-sizing: border-box;
+	align-items: center;
+	min-height: var(--bdc-field-h);
+	border-radius: 12px;
+}
+
+.bdc-reports__filters .bdc-segment a {
+	border-radius: 9px;
+}
+
+/* ---- Reports filter row: two equal halves, full width ---- */
+.bdc-reports form.bdc-reports__filters {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+	align-items: center;
+	gap: 12px;
+}
+
+.bdc-reports__filters .bdc-segment {
+	display: flex;
+	width: 100%;
+	min-width: 0;
+	box-sizing: border-box;
+}
+
+.bdc-reports__filters .bdc-segment a {
+	flex: 1 0 auto;
+	justify-content: center;
+	text-align: center;
+}
+
+.bdc-reports__filters .bdc-reports__dates {
+	display: flex;
+	width: 100%;
+	min-width: 0;
+	gap: 10px;
+}
+
+.bdc-reports__filters .bdc-daterange {
+	flex: 1 1 auto;
+	min-width: 0;
+	width: auto;
+}
+
+.bdc-reports__filters .bdc-daterange input[type="date"] {
+	flex: 1 1 0;
+	width: 0;
+}
+
+.bdc-reports__filters .bdc-reports__apply {
+	flex: none;
+}
+
+/* Download CSV beside the page title. */
+.bdc-reports__tools {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.bdc-reports .bdc-titlebar .bdc-reports__csv {
+	display: inline-flex !important;
+	align-items: center;
+	gap: 6px;
+	margin: 0 !important;
+}
+
+/* Not enough room for both halves side by side: stack them. */
+@media (max-width: 1180px) {
+	.bdc-reports form.bdc-reports__filters {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+
+@media (max-width: 782px) {
+	.bdc-reports__filters .bdc-reports__dates {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.bdc-reports .bdc-titlebar .bdc-reports__csv {
+		flex: none;
+	}
+}
+
+/* ---- Settings: cards and panels use the full width ---- */
+.bdc-page.bdc-settings {
+	max-width: none;
+}
+
+.bdc-settings .bdc-settings__form,
+.bdc-settings .bdc-panel,
+.bdc-settings .bdc-cards {
+	width: 100%;
+	max-width: none;
+	box-sizing: border-box;
+}
+
+.bdc-settings .bdc-cards {
+	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+/* =========================================================
+   Settings: one premium look and one height for every control
+   ========================================================= */
+.bdc-settings {
+	--bdc-control-h: 42px;
+}
+
+.bdc-settings .bdc-panel input[type="text"],
+.bdc-settings .bdc-panel input[type="number"],
+.bdc-settings .bdc-panel input[type="password"],
+.bdc-settings .bdc-panel input[type="email"],
+.bdc-settings .bdc-panel input[type="url"],
+.bdc-settings .bdc-panel input[type="tel"],
+.bdc-settings .bdc-panel select,
+.bdc-settings .bdc-panel textarea {
+	box-sizing: border-box;
+	min-height: var(--bdc-control-h);
+	padding: 0 14px;
+	border: 1px solid var(--bdc-line);
+	border-radius: 10px;
+	background-color: var(--bdc-surface);
+	box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
+	color: var(--bdc-ink);
+	font-size: 14px;
+	line-height: calc(var(--bdc-control-h) - 2px);
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.bdc-settings .bdc-panel input[type="text"],
+.bdc-settings .bdc-panel input[type="number"],
+.bdc-settings .bdc-panel input[type="password"],
+.bdc-settings .bdc-panel input[type="email"],
+.bdc-settings .bdc-panel input[type="url"],
+.bdc-settings .bdc-panel input[type="tel"],
+.bdc-settings .bdc-panel select {
+	height: var(--bdc-control-h);
+}
+
+.bdc-settings .bdc-panel select {
+	padding-right: 38px;
+	background-position: right 12px top 55%;
+	cursor: pointer;
+}
+
+.bdc-settings .bdc-panel textarea {
+	padding: 10px 14px;
+	line-height: 1.5;
+}
+
+.bdc-settings .bdc-panel input:hover,
+.bdc-settings .bdc-panel select:hover,
+.bdc-settings .bdc-panel textarea:hover {
+	border-color: var(--bdc-line-strong);
+}
+
+.bdc-settings .bdc-panel input:focus,
+.bdc-settings .bdc-panel select:focus,
+.bdc-settings .bdc-panel textarea:focus {
+	border-color: var(--bdc-accent);
+	box-shadow: 0 0 0 3px var(--bdc-accent-soft);
+	outline: none;
+}
+
+.bdc-settings .bdc-panel input[type="number"] {
+	width: 96px;
+}
+
+/* Buttons beside fields, and Save at the bottom: same height, same corners. */
+.bdc-settings .bdc-panel .button,
+.bdc-settings .bdc-actions .button {
+	box-sizing: border-box;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	height: var(--bdc-control-h);
+	min-height: var(--bdc-control-h);
+	padding: 0 18px;
+	border-radius: 10px;
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 1;
+	vertical-align: middle;
+}
+
+.bdc-settings .bdc-inline {
+	gap: 10px;
+}
+
+/* Checkboxes: rounded squares with a clean tick. */
+.bdc-settings .bdc-check {
+	gap: 10px;
+	cursor: pointer;
+}
+
+.bdc-settings .bdc-check input[type="checkbox"] {
+	-webkit-appearance: none;
+	appearance: none;
+	position: relative;
+	flex: none;
+	width: 20px;
+	height: 20px;
+	min-width: 20px;
+	margin: 0;
+	padding: 0;
+	border: 1.5px solid var(--bdc-line-strong);
+	border-radius: 6px;
+	background: var(--bdc-surface);
+	box-shadow: none;
+	cursor: pointer;
+	transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.bdc-settings .bdc-check input[type="checkbox"]::before {
+	content: "";
+	position: absolute;
+	top: 2px;
+	left: 6px;
+	width: 5px;
+	height: 10px;
+	margin: 0;
+	border: solid #fff;
+	border-width: 0 2px 2px 0;
+	transform: rotate(45deg) scale(0);
+	transition: transform 0.15s ease;
+}
+
+.bdc-settings .bdc-check input[type="checkbox"]:checked {
+	border-color: var(--bdc-accent);
+	background: var(--bdc-accent);
+}
+
+.bdc-settings .bdc-check input[type="checkbox"]:checked::before {
+	transform: rotate(45deg) scale(1);
+}
+
+.bdc-settings .bdc-check:hover input[type="checkbox"]:not(:checked) {
+	border-color: var(--bdc-accent);
+}
+
+.bdc-settings .bdc-check input[type="checkbox"]:focus-visible {
+	box-shadow: 0 0 0 3px var(--bdc-accent-soft);
+	outline: none;
+}
+
+/* Status list: each choice is a soft pill, so ticked ones stand out. */
+.bdc-settings .bdc-checks {
+	gap: 8px;
+}
+
+.bdc-settings .bdc-checks .bdc-check {
+	box-sizing: border-box;
+	min-height: var(--bdc-control-h);
+	padding: 0 12px;
+	border: 1px solid var(--bdc-line);
+	border-radius: 10px;
+	background: var(--bdc-surface);
+	transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.bdc-settings .bdc-checks .bdc-check:hover {
+	border-color: var(--bdc-line-strong);
+}
+
+.bdc-settings .bdc-checks .bdc-check:has(input:checked) {
+	border-color: var(--bdc-accent);
+	background: var(--bdc-accent-soft);
+	color: var(--bdc-accent-dark);
+	font-weight: 600;
+}
+
+@media (max-width: 782px) {
+	.bdc-settings .bdc-panel input[type="text"],
+	.bdc-settings .bdc-panel input[type="password"],
+	.bdc-settings .bdc-panel input[type="email"],
+	.bdc-settings .bdc-panel input[type="url"],
+	.bdc-settings .bdc-panel select {
+		width: 100%;
+		max-width: 100%;
+	}
+
+	.bdc-settings .bdc-inline {
+		width: 100%;
+	}
+
+	.bdc-settings .bdc-inline select {
+		flex: 1 1 auto;
+		width: auto;
+	}
+}
+
+/* Colour picker: a swatch on the left, the label on white, same height as other controls. */
+.bdc-settings .wp-picker-container .button.wp-color-result {
+	display: inline-block;
+	height: var(--bdc-control-h);
+	min-height: var(--bdc-control-h);
+	margin: 0;
+	padding: 0 0 0 44px;
+	border: 1px solid var(--bdc-line);
+	border-radius: 10px;
+	box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
+	overflow: hidden;
+	vertical-align: middle;
+}
+
+.bdc-settings .wp-picker-container .wp-color-result-text {
+	display: block;
+	height: 100%;
+	padding: 0 16px;
+	border: 0;
+	border-left: 1px solid var(--bdc-line);
+	border-radius: 0;
+	background: var(--bdc-surface);
+	color: var(--bdc-ink);
+	font-size: 14px;
+	font-weight: 600;
+	line-height: calc(var(--bdc-control-h) - 2px);
+}
+
+.bdc-settings .wp-picker-container .button.wp-color-result:hover,
+.bdc-settings .wp-picker-container .button.wp-color-result:focus {
+	border-color: var(--bdc-accent);
+	box-shadow: 0 0 0 3px var(--bdc-accent-soft);
+}
+
+.bdc-settings .wp-picker-input-wrap input[type="text"] {
+	width: 110px;
+	height: var(--bdc-control-h);
+}
+
+.bdc-settings .wp-picker-input-wrap .button {
+	height: var(--bdc-control-h);
+	min-height: var(--bdc-control-h);
+}
+
+@media (max-width: 782px) {
+	.bdc-settings .bdc-checks {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.bdc-settings .bdc-checks .bdc-check {
+		padding: 0 10px;
+		font-size: 13px;
+		line-height: 1.25;
+	}
+}
+
+/* =========================================================
+   Orders list: premium toolbar (one height) and phone cards
+   ========================================================= */
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) {
+	--bdc-ctl-h: 44px;
+}
+
+/* Search: white rounded box with a magnifier, button the same height. */
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .search-box {
+	align-items: center;
+	gap: 8px;
+	margin: 0 0 12px;
+}
+
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .search-box input[type="search"] {
+	box-sizing: border-box;
+	width: 320px;
+	height: var(--bdc-ctl-h);
+	min-height: var(--bdc-ctl-h);
+	padding: 0 14px 0 40px;
+	border: 1px solid var(--bdc-line);
+	border-radius: 12px;
+	background: var(--bdc-surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") no-repeat 14px 50%;
+	box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
+	color: var(--bdc-ink);
+	font-size: 14px;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .search-box select {
+	box-sizing: border-box;
+	height: var(--bdc-ctl-h);
+	min-height: var(--bdc-ctl-h);
+	margin: 0;
+	padding: 0 34px 0 12px;
+	border: 1px solid var(--bdc-line);
+	border-radius: 12px;
+	box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
+}
+
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .search-box input[type="search"]:focus,
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav select:focus {
+	border-color: var(--bdc-accent);
+	box-shadow: 0 0 0 3px var(--bdc-accent-soft);
+	outline: none;
+}
+
+/* Toolbar card: every control 44px, rounded 10px. */
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav.top {
+	gap: 10px;
+	padding: 12px 14px;
+	border-radius: 14px;
+}
+
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav.top .actions {
+	gap: 8px;
+}
+
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav select,
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav .select2-container .select2-selection--single {
+	box-sizing: border-box;
+	height: var(--bdc-ctl-h);
+	min-height: var(--bdc-ctl-h);
+	padding: 0 34px 0 12px;
+	border: 1px solid var(--bdc-line);
+	border-radius: 10px;
+	box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
+	font-size: 14px;
+	line-height: calc(var(--bdc-ctl-h) - 2px);
+}
+
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav .select2-container .select2-selection--single {
+	padding: 0;
+}
+
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav .select2-container .select2-selection__rendered {
+	padding: 0 34px 0 12px;
+	line-height: calc(var(--bdc-ctl-h) - 2px);
+}
+
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav .select2-container .select2-selection__arrow {
+	top: 0;
+	right: 6px;
+	height: calc(var(--bdc-ctl-h) - 2px);
+}
+
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav .button,
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .search-box .button {
+	box-sizing: border-box;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	height: var(--bdc-ctl-h);
+	min-height: var(--bdc-ctl-h);
+	padding: 0 18px;
+	border-radius: 10px;
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 1;
+}
+
+/* Pagination: square 44px buttons. */
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav .tablenav-pages {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	height: auto;
+	color: var(--bdc-muted);
+}
+
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav .pagination-links {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav .tablenav-pages .button,
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav .tablenav-pages .tablenav-pages-navspan {
+	box-sizing: border-box;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: var(--bdc-ctl-h);
+	min-width: var(--bdc-ctl-h);
+	height: var(--bdc-ctl-h);
+	min-height: var(--bdc-ctl-h);
+	margin: 0;
+	padding: 0;
+	border: 1px solid var(--bdc-line);
+	border-radius: 10px;
+	background: var(--bdc-surface);
+	font-size: 16px;
+	line-height: 1;
+}
+
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav .tablenav-pages-navspan {
+	color: var(--bdc-line-strong);
+}
+
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav .current-page {
+	box-sizing: border-box;
+	width: 52px;
+	height: var(--bdc-ctl-h);
+	min-height: var(--bdc-ctl-h);
+	margin: 0;
+	padding: 0;
+	border: 1px solid var(--bdc-line);
+	border-radius: 10px;
+	font-size: 14px;
+	text-align: center;
+}
+
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav .paging-input {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
+/* The arrow that opens a card only shows on phones. */
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .bdc-row-toggle {
+	display: none;
+}
+
+/* ---- Phones and small tablets ---- */
+@container bdc-orders (max-width: 760px) {
+	/* Toolbar: everything full width, stacked neatly. */
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .search-box {
+		display: flex;
+		float: none;
+		flex-wrap: wrap;
+		width: 100%;
+		position: static;
+		height: auto;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .search-box input[type="search"] {
+		flex: 1 1 0;
+		width: auto;
+		min-width: 0;
+		font-size: 15px;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .search-box select {
+		flex: 1 1 100%;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .search-box .button {
+		flex: none;
+		margin: 0;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav.top {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav.top .actions {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto;
+		width: 100%;
+		margin: 0;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav.top .actions:not(.bulkactions) {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav.top .actions select:not(.select2-hidden-accessible),
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav.top .actions .select2-container {
+		width: 100% !important;
+		max-width: none;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav.top .actions:not(.bulkactions) .button {
+		width: 100%;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav.top .tablenav-pages {
+		justify-content: center;
+		width: 100%;
+		margin: 0;
+		text-align: center;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav.top .tablenav-pages .displaying-num {
+		display: none;
+	}
+
+	/* Orders become one column of cards. */
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table {
+		border: 0;
+		background: transparent;
+		box-shadow: none;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table thead,
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table tfoot {
+		display: none;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table,
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table tbody {
+		display: block;
+		width: 100%;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table tbody {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr);
+		gap: 10px;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list tr:not(.no-items) {
+		position: relative;
+		display: grid;
+		grid-template-columns: 34px minmax(0, 1fr);
+		column-gap: 6px;
+		padding: 14px 14px 12px 10px;
+		border: 1px solid var(--bdc-line);
+		border-radius: 14px;
+		background: var(--bdc-surface) !important;
+		box-shadow: var(--bdc-shadow);
+		transition: border-color 0.15s ease, box-shadow 0.15s ease;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list tr.bdc-open {
+		border-color: var(--bdc-accent);
+		box-shadow: 0 0 0 3px var(--bdc-accent-soft), var(--bdc-shadow);
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list tr > * {
+		grid-column: 2;
+		min-width: 0;
+		padding: 0 !important;
+		border: 0 !important;
+		box-shadow: none !important;
+		background: transparent !important;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list tr > *::before {
+		position: static !important;
+		width: auto !important;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list tr > .check-column {
+		grid-column: 1;
+		grid-row: 1;
+		display: block !important;
+		width: auto;
+		padding-top: 2px !important;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list tr > .column-primary {
+		grid-row: 1;
+		display: block !important;
+		padding-right: 92px !important;
+	}
+
+	/* Preview eye and the open arrow sit together at the top right. */
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list .column-primary .order-preview {
+		position: absolute;
+		top: 14px;
+		right: 56px;
+		float: none;
+		margin: 0;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list .column-primary .bdc-row-toggle {
+		position: absolute;
+		top: 10px;
+		right: 12px;
+		display: flex;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list .column-primary .toggle-row {
+		display: none;
+	}
+
+	/* Always on the card: courier (send buttons or parcel) and the total. */
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list tr > td.column-bdc_courier,
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list tr > td.column-order_total {
+		display: block !important;
+		margin-top: 10px;
+		padding-top: 10px !important;
+		border-top: 1px solid var(--bdc-line) !important;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list tr > td.column-bdc_courier::before {
+		display: none !important;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list tr > td.column-order_total {
+		display: flex !important;
+		align-items: center;
+		justify-content: space-between;
+		font-weight: 600;
+		text-align: right;
+	}
+
+	/* Everything else waits until the card is opened. */
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list tr > td:not(.check-column):not(.column-primary):not(.column-bdc_courier):not(.column-order_total) {
+		display: none !important;
+	}
+
+	/* Date and status already show under the order number. */
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list tr.bdc-open > td:not(.hidden):not(.check-column):not(.column-primary):not(.column-bdc_courier):not(.column-order_total):not(.column-order_date):not(.column-order_status) {
+		display: grid !important;
+		grid-template-columns: 96px minmax(0, 1fr);
+		gap: 10px;
+		margin-top: 10px;
+		padding-top: 10px !important;
+		border-top: 1px solid var(--bdc-line) !important;
+		text-align: left;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list tr > td::before {
+		content: attr(data-colname);
+		display: block;
+		color: var(--bdc-muted);
+		font-size: 12px;
+		font-weight: 500;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list tr.bdc-open > td > * {
+		grid-column: 2;
+	}
+}
+
+@container bdc-orders (max-width: 760px) {
+	/* Cards ignore the desktop column widths. */
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list tr > * {
+		width: auto !important;
+		max-width: none !important;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list .column-primary .order_date,
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list .column-primary .order_status {
+		display: inline-flex !important;
+		align-items: center;
+		margin: 4px 8px 0 0;
+		vertical-align: middle;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list .column-primary .order_status mark {
+		max-width: none;
+		white-space: nowrap;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list .column-primary .bdc-order-phone {
+		display: block;
+		margin-top: 4px;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list tr > td.column-order_total::before {
+		margin-right: 10px;
+		white-space: nowrap;
+	}
+}
+
+@container bdc-orders (max-width: 760px) {
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list .column-primary .order_date {
+		white-space: nowrap;
+		color: var(--bdc-muted);
+		font-size: 13px;
+	}
+}
+
+@container bdc-orders (max-width: 760px) {
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list .column-primary .order_date,
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list .column-primary .order_status {
+		width: auto !important;
+		float: none !important;
+		position: static !important;
+	}
+
+	/* Opened card: the full view, including columns hidden on desktop. */
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list tr.bdc-open.bdc-open > td.hidden.hidden:is(.column-billing_address, .column-shipping_address, .column-wc_actions) {
+		display: grid !important;
+		grid-template-columns: 96px minmax(0, 1fr);
+		gap: 10px;
+		margin-top: 10px;
+		padding-top: 10px !important;
+		border-top: 1px solid var(--bdc-line) !important;
+		text-align: left;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list tr.bdc-open > td.column-wc_actions > p {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
+		margin: 0;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list tr.bdc-open > td .description {
+		display: block;
+		color: var(--bdc-muted);
+	}
+}
+
+@container bdc-orders (max-width: 760px) {
+	/* No empty "Actions" line when WooCommerce has no quick actions for the order. */
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list tr.bdc-open.bdc-open > td.column-wc_actions:not(:has(a)) {
+		display: none !important;
+	}
+}
+
+/* =========================================================
+   Orders list polish: compact tags, minimal checkboxes,
+   swipeable status chips, premium table
+   ========================================================= */
+
+/* Status tags hug their text: small pill with a dot. */
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table td.column-order_status mark.order-status,
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table .column-primary .order_status mark.order-status {
+	display: inline-flex;
+	justify-content: flex-start;
+	width: auto;
+	max-width: 100%;
+	padding: 4px 12px 4px 10px;
+	border-radius: 999px;
+	box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.06);
+	font-size: 12px;
+	font-weight: 600;
+	line-height: 1.35;
+	letter-spacing: 0.005em;
+}
+
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table mark.order-status > span {
+	overflow: visible;
+	white-space: nowrap;
+}
+
+/* Send buttons hug their label: soft pill with an arrow. */
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) td.column-bdc_courier .bdc-cell__buttons {
+	display: inline-flex;
+	flex-wrap: wrap;
+	width: auto;
+	max-width: 100%;
+	gap: 6px;
+}
+
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) td.column-bdc_courier .bdc-send {
+	flex: none;
+	gap: 4px;
+	min-height: 30px;
+	padding: 0 12px 0 9px;
+	border: 1px solid transparent;
+	border-radius: 999px;
+	font-size: 12px;
+	letter-spacing: 0.01em;
+	overflow: visible;
+}
+
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) td.column-bdc_courier .bdc-send .dashicons {
+	display: inline-block;
+	width: 14px;
+	height: 14px;
+	font-size: 14px;
+}
+
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) td.column-bdc_courier .bdc-send--steadfast {
+	border-color: rgba(11, 122, 91, 0.18);
+}
+
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) td.column-bdc_courier .bdc-send--pathao {
+	border-color: rgba(217, 45, 32, 0.18);
+}
+
+/* Minimal checkboxes: thin rounded square, solid with a tick when chosen. */
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table .check-column input[type="checkbox"] {
+	-webkit-appearance: none;
+	appearance: none;
+	position: relative;
+	width: 18px;
+	height: 18px;
+	min-width: 18px;
+	margin: 0;
+	padding: 0;
+	border: 1.5px solid #cbd2dc;
+	border-radius: 5px;
+	background: var(--bdc-surface);
+	box-shadow: none;
+	cursor: pointer;
+	transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table .check-column input[type="checkbox"]::before {
+	content: "" !important;
+	position: absolute;
+	top: 1px;
+	left: 5px;
+	width: 4px;
+	height: 9px;
+	margin: 0 !important;
+	border: solid #fff;
+	border-width: 0 2px 2px 0;
+	background: none !important;
+	transform: rotate(45deg) scale(0);
+	transition: transform 0.15s ease;
+}
+
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table .check-column input[type="checkbox"]:checked {
+	border-color: var(--bdc-accent);
+	background: var(--bdc-accent);
+}
+
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table .check-column input[type="checkbox"]:checked::before {
+	transform: rotate(45deg) scale(1);
+}
+
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table .check-column input[type="checkbox"]:hover {
+	border-color: var(--bdc-accent);
+}
+
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table .check-column input[type="checkbox"]:focus-visible {
+	box-shadow: 0 0 0 3px var(--bdc-accent-soft);
+	outline: none;
+}
+
+/* Status chips above the list: taller, softer, with a count badge. */
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .subsubsub {
+	gap: 8px;
+	margin: 12px 0 14px;
+}
+
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .subsubsub a {
+	gap: 7px;
+	min-height: 36px;
+	padding: 0 8px 0 14px;
+	box-sizing: border-box;
+	border: 1px solid var(--bdc-line);
+	background: var(--bdc-surface);
+	box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+	font-size: 13px;
+	font-weight: 500;
+	white-space: nowrap;
+	transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .subsubsub a .count {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 22px;
+	height: 22px;
+	padding: 0 7px;
+	box-sizing: border-box;
+	border-radius: 999px;
+	background: var(--bdc-soft);
+	color: var(--bdc-muted);
+	font-size: 11px;
+	font-weight: 600;
+	opacity: 1;
+}
+
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .subsubsub a.current .count {
+	background: rgba(255, 255, 255, 0.22);
+	color: var(--bdc-on-accent);
+}
+
+/* Phones: one row of chips that swipes sideways, no scroll bar. */
+@media (max-width: 782px) {
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .subsubsub {
+		flex-wrap: nowrap;
+		max-width: 100%;
+		overflow-x: auto;
+		overflow-y: hidden;
+		padding: 2px 2px 4px;
+		-webkit-overflow-scrolling: touch;
+		scroll-snap-type: x proximity;
+		scrollbar-width: none;
+		-ms-overflow-style: none;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .subsubsub::-webkit-scrollbar {
+		display: none;
+		width: 0;
+		height: 0;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .subsubsub li {
+		flex: none;
+		scroll-snap-align: start;
+	}
+}
+
+/* Desktop table: calm header, roomy rows, soft hover. */
+@container bdc-orders (min-width: 761px) {
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table {
+		border-radius: 14px;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table thead th,
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table thead td,
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table tfoot th,
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table tfoot td {
+		padding-top: 12px;
+		padding-bottom: 12px;
+		background: #f8fafc;
+		color: var(--bdc-muted);
+		font-size: 11px;
+		font-weight: 600;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		vertical-align: middle;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table thead th a,
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table tfoot th a {
+		color: var(--bdc-muted);
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table thead th.sorted a,
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table thead th a:hover {
+		color: var(--bdc-ink);
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table tbody td,
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table tbody th {
+		padding-top: 16px;
+		padding-bottom: 16px;
+		vertical-align: middle;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table tbody tr {
+		transition: background 0.12s ease;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table tbody tr:hover {
+		background: #f8fafc !important;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table .column-order_number .order-view strong {
+		color: var(--bdc-ink);
+		font-size: 14px;
+		font-weight: 600;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table .column-order_number .order-view:hover strong {
+		color: var(--bdc-accent);
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table td.column-order_date {
+		color: var(--bdc-muted);
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table td.column-order_total {
+		color: var(--bdc-ink);
+		font-weight: 600;
+		font-variant-numeric: tabular-nums;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table td.column-origin {
+		color: var(--bdc-muted);
+		font-size: 12px;
+	}
+}
+
+/* =========================================================
+   Orders table columns: small columns get a set width,
+   Order and Courier share whatever room is left
+   ========================================================= */
+@container bdc-orders (min-width: 761px) {
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table :is(th, td).check-column {
+		width: 44px !important;
+		padding: 0 0 0 16px !important;
+		vertical-align: middle;
+		box-sizing: content-box;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table thead td.check-column,
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table tfoot td.check-column {
+		width: 28px !important;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table .check-column {
+		width: 28px !important;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table .check-column input[type="checkbox"] {
+		vertical-align: middle;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table .column-order_number,
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table .column-bdc_courier {
+		width: auto !important;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table .column-order_date {
+		width: 108px !important;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table .column-order_status {
+		width: 150px !important;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table .column-order_total {
+		width: 104px !important;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table .column-origin {
+		width: 96px !important;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table .column-wc_actions {
+		width: 96px !important;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table :is(.column-billing_address, .column-shipping_address) {
+		width: 18% !important;
+	}
+
+	/* Courier column never gets squeezed below its buttons. */
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table th.column-bdc_courier {
+		min-width: 190px;
+	}
+
+	/* Date on one line. */
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table td.column-order_date,
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table td.column-order_date time {
+		white-space: nowrap;
+		overflow-wrap: normal;
+	}
+
+	/* Status tag always fits: long names wrap between words inside the pill. */
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table td.column-order_status mark.order-status {
+		max-width: 100%;
+		box-sizing: border-box;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table td.column-order_status mark.order-status > span {
+		min-width: 0;
+		white-space: normal;
+		overflow-wrap: normal;
+		word-break: keep-all;
+	}
+
+	/* Total on one line, right aligned. */
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table td.column-order_total {
+		white-space: nowrap;
+		overflow-wrap: normal;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table .column-order_number .order-view strong {
+		overflow-wrap: normal;
+		word-break: normal;
+	}
+}
+
+/* Narrow desktop windows: a little less room for the set columns. */
+@container bdc-orders (min-width: 761px) and (max-width: 1000px) {
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table .column-order_date {
+		width: 96px !important;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table .column-order_status {
+		width: 132px !important;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table .column-order_total {
+		width: 92px !important;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table td.column-order_status mark.order-status {
+		padding: 4px 10px 4px 8px;
+		font-size: 11.5px;
+	}
+}
+
+/* =========================================================
+   Orders toolbar: search on its own full row; inside the card,
+   bulk actions left and pages right, filters on the row below
+   ========================================================= */
+@container bdc-orders (min-width: 761px) {
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .search-box {
+		display: flex;
+		float: none;
+		width: 100%;
+		position: static;
+		height: auto;
+		margin: 0 0 12px;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .search-box input[type="search"] {
+		flex: 1 1 auto;
+		width: auto;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .search-box .button {
+		flex: none;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav.top {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 10px 12px;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav.top .bulkactions {
+		order: 1;
+		flex: none;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav.top .tablenav-pages {
+		order: 2;
+		flex: none;
+		margin: 0 0 0 auto !important;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav.top .actions:not(.bulkactions) {
+		order: 3;
+		flex: 1 1 100%;
+		display: flex;
+		flex-wrap: nowrap;
+		gap: 8px;
+		padding-top: 10px;
+		border-top: 1px solid var(--bdc-line);
+	}
+
+	/* Filters share the row evenly; Filter button keeps its size. */
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav.top .actions:not(.bulkactions) > select:not(.select2-hidden-accessible),
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav.top .actions:not(.bulkactions) > .select2-container {
+		flex: 1 1 0;
+		width: auto !important;
+		min-width: 0;
+		max-width: none;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav.top .actions:not(.bulkactions) > .button {
+		flex: none;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav.top .bulkactions select {
+		width: 200px;
+	}
+}
+
+@container bdc-orders (min-width: 761px) {
+	/* The last visible column keeps a comfortable gap from the card edge. */
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table tr > :is(th, td):last-child,
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table tr > :is(th, td).column-order_total {
+		padding-right: 20px !important;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table .column-order_total {
+		width: 116px !important;
+	}
+}
+
+/* The orders list picks its layout from the room its form actually has. */
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wrap form:has(.wp-list-table) {
+	container-type: inline-size;
+	container-name: bdc-orders;
+}
+
+@container bdc-orders (max-width: 760px) {
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list .column-primary .order-view {
+		display: block;
+		margin-bottom: 2px;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list .column-primary .order-view strong {
+		color: var(--bdc-accent);
+		font-size: 15px;
+		font-weight: 600;
+	}
+
+	/* Two filters per row when there is room for it. */
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav.top .actions:not(.bulkactions) {
+		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav.top .actions:not(.bulkactions) .button {
+		grid-column: 1 / -1;
+	}
+}
+
+@container bdc-orders (max-width: 760px) {
+	/* Filters fill each row completely, whatever filters WooCommerce shows. */
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav.top .actions:not(.bulkactions) {
+		display: flex;
+		flex-wrap: wrap;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav.top .actions:not(.bulkactions) > select:not(.select2-hidden-accessible),
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav.top .actions:not(.bulkactions) > .select2-container {
+		flex: 1 1 200px;
+		width: auto !important;
+		min-width: 0;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav.top .actions:not(.bulkactions) > .button {
+		flex: 1 1 100%;
+	}
+}
+
+/* ---- Customer filter (select2): same box as the other filters ---- */
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav .select2-container--default .select2-selection--single {
+	display: flex;
+	align-items: center;
+	height: var(--bdc-ctl-h);
+	padding: 0;
+	border: 1px solid var(--bdc-line);
+	border-radius: 10px;
+	background: var(--bdc-surface);
+	box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
+	outline: none;
+}
+
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav .select2-container--default .select2-selection--single .select2-selection__rendered {
+	flex: 1 1 auto;
+	height: auto;
+	padding: 0 36px 0 12px;
+	color: var(--bdc-ink);
+	font-size: 14px;
+	line-height: calc(var(--bdc-ctl-h) - 2px) !important;
+}
+
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav .select2-container--default .select2-selection--single .select2-selection__placeholder {
+	color: var(--bdc-ink);
+}
+
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav .select2-container--default .select2-selection--single .select2-selection__arrow {
+	top: 50%;
+	right: 10px;
+	height: 20px;
+	transform: translateY(-50%);
+}
+
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav .select2-container--default.select2-container--focus .select2-selection--single,
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav .select2-container--default.select2-container--open .select2-selection--single {
+	border-color: var(--bdc-accent);
+	box-shadow: 0 0 0 3px var(--bdc-accent-soft);
+}
+
+/* ---- Order cards ---- */
+@container bdc-orders (max-width: 760px) {
+	/* Courier and total read as one section: one divider above, none between. */
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list tr > td.column-bdc_courier {
+		margin-top: 12px;
+		padding-top: 12px !important;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list tr > td.column-bdc_courier .bdc-cell {
+		margin: 0;
+		padding: 0;
+		border: 0;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list tr > td.column-order_total {
+		margin-top: 8px;
+		padding-top: 0 !important;
+		border-top: 0 !important;
+	}
+
+	/* Smaller labels: status, courier name, order history. */
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list .column-primary .order_status mark.order-status {
+		padding: 3px 10px 3px 8px;
+		font-size: 11px;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list .bdc-history-badge {
+		padding: 2px 8px;
+		font-size: 10.5px;
+		line-height: 1.5;
+		white-space: nowrap;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list td.column-bdc_courier .bdc-badge {
+		padding: 1px 8px;
+		font-size: 10.5px;
+		line-height: 1.6;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list td.column-bdc_courier .bdc-consignment {
+		font-size: 11px;
+	}
+
+	/* Title on one line: only the first line leaves room for the eye and arrow. */
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list tr > .column-primary {
+		padding-right: 0 !important;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list .column-primary .order-view {
+		margin-right: 84px;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list .column-primary,
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list .column-primary * {
+		overflow-wrap: normal;
+		word-break: normal;
+	}
+}
+
+/* The title row is as tall as the arrow, so nothing below can run under it. */
+@container bdc-orders (max-width: 760px) {
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list .column-primary .order-view {
+		display: flex;
+		align-items: center;
+		min-height: 34px;
+		margin: -6px 84px 6px 0;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list .column-primary .order-view strong {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list tr > td.column-order_total {
+		margin-top: 4px;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav .paging-input,
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav .tablenav-paging-text {
+		white-space: nowrap;
+	}
+}
+
+@container bdc-orders (max-width: 340px) {
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav .pagination-links {
+		gap: 4px;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav .tablenav-pages .button,
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav .tablenav-pages .tablenav-pages-navspan {
+		width: 38px;
+		min-width: 38px;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .tablenav .current-page {
+		width: 42px;
+	}
+}
+
+@container bdc-orders (max-width: 760px) {
+	/* Arrow, eye and title share one 34px row at the top of the card. */
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list .column-primary .bdc-row-toggle {
+		top: 14px;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list .column-primary .order-preview {
+		top: 22px;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list .column-primary .order-view {
+		margin: 0 84px 8px 0;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list tr > .check-column {
+		padding-top: 8px !important;
+	}
+}
+
+@container bdc-orders (max-width: 760px) {
+	/* Arrow and eye are placed against the title row itself, so they always line up with it. */
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list tr > .column-primary {
+		position: relative;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list .column-primary .bdc-row-toggle {
+		top: 0;
+		right: 0;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list .column-primary .order-preview {
+		top: 7px;
+		right: 46px;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list .column-primary .order-view {
+		margin: 0 84px 8px 0;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list tr > .check-column {
+		padding-top: 8px !important;
+	}
+}
+
+@container bdc-orders (max-width: 760px) {
+	/* Closed card: courier details wait until the card is opened. */
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list tr:not(.bdc-open) > td.column-bdc_courier {
+		display: none !important;
+	}
+
+	/* Closed card: the total gets its own divider. */
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list tr:not(.bdc-open) > td.column-order_total {
+		margin-top: 12px;
+		padding-top: 12px !important;
+		border-top: 1px solid var(--bdc-line) !important;
+	}
+
+	/* Opened card: courier first with its divider, then total, then the rest. */
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list tr.bdc-open > td.column-bdc_courier {
+		display: block !important;
+	}
+
+	/* Title gets more room: eye and arrow sit tight together. */
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list .column-primary .order-view {
+		margin-right: 66px;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list .column-primary .order-preview {
+		right: 40px;
+	}
+
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list .column-primary .order-view strong {
+		font-size: 14.5px;
+	}
+
+	/* No grey hover block beside the checkbox. */
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list .check-column label,
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list .check-column label:hover,
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list .check-column:hover {
+		background: transparent !important;
+		box-shadow: none !important;
+	}
+}
+
+/* Desktop table too: no grey hover block in the checkbox cell. */
+:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) .wp-list-table .check-column label:hover {
+	background: transparent;
+}
+
+@container bdc-orders (max-width: 760px) {
+	/* Opened card: Total keeps a divider like every other line. */
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list tr.bdc-open > td.column-order_total {
+		margin-top: 10px;
+		padding-top: 10px !important;
+		border-top: 1px solid var(--bdc-line) !important;
+	}
+
+	/* No empty "Actions" line when WooCommerce has no quick actions. */
+	:is(.post-type-shop_order.edit-php, .woocommerce_page_wc-orders) #the-list tr.bdc-open.bdc-open.bdc-open > td.column-wc_actions.column-wc_actions.column-wc_actions:not(:has(a)) {
+		display: none !important;
+	}
+}
+
+/* ---- Copy button beside phone numbers ---- */
+.bdc-phone-line {
+	display: flex;
+	align-items: center;
+	gap: 2px;
+	margin-top: 2px;
+}
+
+.bdc-phone-line > .bdc-has-copy {
+	display: inline !important;
+	margin: 0 !important;
+}
+
+.bdc-phone-line > .bdc-copy-phone {
+	margin-left: 2px;
+}
+
+.bdc-copy-phone {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 18px;
+	height: 18px;
+	min-height: 0;
+	margin: 0 0 0 4px;
+	padding: 0;
+	border: 0;
+	border-radius: 5px;
+	background: transparent;
+	color: var(--bdc-muted, #6b7280);
+	vertical-align: -3px;
+	cursor: pointer;
+	opacity: 0.7;
+	transition: background 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+}
+
+.bdc-copy-phone:hover,
+.bdc-copy-phone:focus-visible {
+	background: var(--bdc-accent-soft, #e9effd);
+	color: var(--bdc-accent, #2563eb);
+	opacity: 1;
+	outline: none;
+}
+
+.bdc-copy-phone.is-copied {
+	color: var(--bdc-good, #15803d);
+	opacity: 1;
+}
+
+.bdc-copy-phone svg {
+	display: block;
+}
+
+/* Phone and its copy button stay together on one line. */
+.column-order_number .bdc-order-phone.bdc-has-copy,
+.column-billing_address .bdc-order-phone.bdc-has-copy {
+	margin-top: 2px;
+}
+
+/* ---- Send buttons: a small truck instead of the arrow ---- */
+.bdc-send .bdc-send__icon {
+	flex: none;
+	width: 12px;
+	height: 12px;
+	margin-right: 1px;
+}
+
+/* ---- Send popup: a calm placeholder while the form loads ---- */
+.bdc-skeleton {
+	padding: 22px 24px 20px;
+}
+
+.bdc-skeleton__head {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin-bottom: 18px;
+}
+
+.bdc-skeleton__badge {
+	display: inline-flex;
+	align-items: center;
+	min-height: 26px;
+	padding: 0 12px;
+	border-radius: 999px;
+	background: var(--bdc-soft);
+	color: var(--bdc-ink);
+	font-size: 13px;
+	font-weight: 600;
+}
+
+.bdc-skeleton__badge--steadfast {
+	background: var(--bdc-steadfast-bg);
+	color: var(--bdc-steadfast);
+}
+
+.bdc-skeleton__badge--pathao {
+	background: var(--bdc-pathao-bg);
+	color: var(--bdc-pathao);
+}
+
+.bdc-skeleton__row {
+	display: grid;
+	grid-template-columns: 140px minmax(0, 1fr);
+	gap: 16px;
+	align-items: center;
+	margin-bottom: 14px;
+}
+
+.bdc-skeleton__label,
+.bdc-skeleton__field,
+.bdc-skeleton__button {
+	display: block;
+	border-radius: 10px;
+	background: linear-gradient(90deg, #eef1f5 0%, #f7f9fb 40%, #eef1f5 80%);
+	background-size: 300% 100%;
+	animation: bdc-shimmer 1.1s ease-in-out infinite;
+}
+
+.bdc-skeleton__label {
+	width: 70%;
+	height: 12px;
+}
+
+.bdc-skeleton__field {
+	height: 40px;
+}
+
+.bdc-skeleton__foot {
+	display: flex;
+	justify-content: flex-end;
+	margin-top: 20px;
+}
+
+.bdc-skeleton__button {
+	width: 140px;
+	height: 40px;
+}
+
+@keyframes bdc-shimmer {
+	0% { background-position: 100% 0; }
+	100% { background-position: 0 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.bdc-skeleton__label,
+	.bdc-skeleton__field,
+	.bdc-skeleton__button {
+		animation: none;
+	}
+}
+
+@media (max-width: 600px) {
+	.bdc-skeleton__row {
+		grid-template-columns: minmax(0, 1fr);
+		gap: 6px;
+	}
+
+	.bdc-skeleton__label {
+		width: 40%;
+	}
+}
+
+/* =========================================================
+   Courier popups (send, edit, bulk): premium, courier-tinted
+   ========================================================= */
+.bdc-modal {
+	--bdc-ctl-h: 42px;
+	background: rgba(15, 23, 42, 0.5);
+	-webkit-backdrop-filter: blur(3px);
+	backdrop-filter: blur(3px);
+	animation: bdc-fade 0.16s ease-out;
+}
+
+.bdc-modal__dialog {
+	max-width: 760px;
+	overflow: hidden;
+	border: 1px solid rgba(15, 23, 42, 0.06);
+	border-radius: 18px;
+	box-shadow: 0 30px 70px rgba(15, 23, 42, 0.28), 0 4px 12px rgba(15, 23, 42, 0.08);
+	animation: bdc-rise 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes bdc-fade {
+	from { opacity: 0; }
+	to { opacity: 1; }
+}
+
+@keyframes bdc-rise {
+	from { opacity: 0; transform: translateY(10px) scale(0.985); }
+	to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.bdc-modal,
+	.bdc-modal__dialog {
+		animation: none;
+	}
+}
+
+/* Courier colour for everything inside the popup. */
+.bdc-modal :is(.bdc-form, .bdc-bulk) {
+	--bdc-c: var(--bdc-accent);
+	--bdc-c-bg: var(--bdc-accent-soft);
+}
+
+.bdc-modal :is(.bdc-form, .bdc-bulk)[data-courier="pathao"] {
+	--bdc-c: var(--bdc-pathao);
+	--bdc-c-bg: var(--bdc-pathao-bg);
+}
+
+.bdc-modal :is(.bdc-form, .bdc-bulk)[data-courier="steadfast"] {
+	--bdc-c: var(--bdc-steadfast);
+	--bdc-c-bg: var(--bdc-steadfast-bg);
+}
+
+/* Header: courier stripe on top, badge, title, round close button. */
+.bdc-modal .bdc-form__header {
+	position: relative;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 20px 22px 16px;
+	border-bottom: 1px solid var(--bdc-line);
+	background: linear-gradient(180deg, var(--bdc-c-bg) 0%, var(--bdc-surface) 140%);
+}
+
+.bdc-modal .bdc-form__header::before {
+	content: "";
+	position: absolute;
+	inset: 0 0 auto 0;
+	height: 3px;
+	background: var(--bdc-c);
+}
+
+.bdc-modal .bdc-form__header .bdc-badge {
+	padding: 3px 10px;
+	border-radius: 999px;
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.02em;
+}
+
+.bdc-modal .bdc-form__header h2 {
+	flex: 1;
+	margin: 0;
+	color: var(--bdc-ink);
+	font-size: 17px;
+	font-weight: 600;
+	line-height: 1.3;
+}
+
+.bdc-modal .bdc-modal__close {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex: none;
+	width: 34px;
+	height: 34px;
+	margin: 0;
+	padding: 0;
+	border: 1px solid var(--bdc-line);
+	border-radius: 10px;
+	background: var(--bdc-surface);
+	color: var(--bdc-muted);
+	font-size: 20px;
+	line-height: 1;
+	cursor: pointer;
+	transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.bdc-modal .bdc-modal__close:hover,
+.bdc-modal .bdc-modal__close:focus-visible {
+	border-color: var(--bdc-line-strong);
+	background: var(--bdc-soft);
+	color: var(--bdc-ink);
+	outline: none;
+}
+
+/* Body. */
+.bdc-modal .bdc-form__body {
+	padding: 18px 22px 6px;
+}
+
+/* Order summary as a row of soft chips. */
+.bdc-modal .bdc-summary {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	margin: 0 0 14px;
+	padding: 0;
+	border: 0;
+	background: none;
+}
+
+.bdc-modal .bdc-summary > span {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	min-height: 30px;
+	padding: 0 12px;
+	border: 1px solid var(--bdc-line);
+	border-radius: 999px;
+	background: var(--bdc-soft);
+	color: var(--bdc-text);
+	font-size: 12.5px;
+}
+
+.bdc-modal .bdc-summary > span strong {
+	color: var(--bdc-muted);
+	font-weight: 500;
+}
+
+.bdc-modal .bdc-summary > span:first-child {
+	border-color: transparent;
+	background: var(--bdc-c-bg);
+	color: var(--bdc-ink);
+	font-weight: 700;
+}
+
+.bdc-modal .bdc-summary > span:first-child strong {
+	color: var(--bdc-c);
+	font-weight: 600;
+}
+
+.bdc-modal .bdc-summary .bdc-pill {
+	border: 0;
+	font-weight: 600;
+}
+
+/* Customer check strip. */
+.bdc-modal .bdc-score {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 10px;
+	margin: 0 0 16px;
+	padding: 10px 12px;
+	border: 1px dashed var(--bdc-line-strong);
+	border-radius: 12px;
+	background: var(--bdc-surface);
+}
+
+.bdc-modal .bdc-score .bdc-score-check {
+	min-height: 34px;
+	padding: 0 14px;
+	border: 1px solid var(--bdc-line);
+	border-radius: 9px;
+	background: var(--bdc-surface);
+	box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
+	font-size: 13px;
+	font-weight: 600;
+	line-height: 1;
+}
+
+.bdc-modal .bdc-score .bdc-score-check:hover {
+	border-color: var(--bdc-c);
+	color: var(--bdc-c);
+}
+
+.bdc-modal .bdc-score > .bdc-muted {
+	font-size: 12px;
+}
+
+/* Sections as soft cards with a small caps title. */
+.bdc-modal .bdc-fieldset {
+	margin: 0 0 14px;
+	padding: 14px 16px 6px;
+	border: 1px solid var(--bdc-line);
+	border-radius: 14px;
+	background: var(--bdc-surface);
+}
+
+.bdc-modal .bdc-fieldset > legend {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	margin: 0 0 0 -4px;
+	padding: 0 6px;
+	color: var(--bdc-muted);
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.bdc-modal .bdc-fieldset > legend::before {
+	content: "";
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: var(--bdc-c);
+}
+
+.bdc-modal .bdc-grid {
+	gap: 12px 14px;
+}
+
+/* Fields. */
+.bdc-modal .bdc-field {
+	margin: 0 0 8px;
+}
+
+.bdc-modal .bdc-field > label {
+	display: block;
+	margin: 0 0 6px;
+	color: var(--bdc-text);
+	font-size: 12.5px;
+	font-weight: 600;
+}
+
+.bdc-modal .bdc-required {
+	color: var(--bdc-c);
+}
+
+.bdc-modal .bdc-field :is(input[type="text"], input[type="tel"], input[type="number"], input[type="email"], input[type="url"], select, textarea) {
+	box-sizing: border-box;
+	width: 100%;
+	max-width: none;
+	margin: 0;
+	border: 1px solid var(--bdc-line);
+	border-radius: 10px;
+	background-color: var(--bdc-surface);
+	box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+	color: var(--bdc-ink);
+	font-size: 14px;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.bdc-modal .bdc-field :is(input[type="text"], input[type="tel"], input[type="number"], input[type="email"], input[type="url"], select) {
+	height: var(--bdc-ctl-h);
+	min-height: var(--bdc-ctl-h);
+	padding: 0 12px;
+	line-height: calc(var(--bdc-ctl-h) - 2px);
+}
+
+.bdc-modal .bdc-field select {
+	padding-right: 34px;
+	background-position: right 10px top 55%;
+}
+
+.bdc-modal .bdc-field textarea {
+	min-height: 64px;
+	padding: 10px 12px;
+	line-height: 1.5;
+	resize: vertical;
+}
+
+.bdc-modal .bdc-field :is(input, select, textarea):hover {
+	border-color: var(--bdc-line-strong);
+}
+
+.bdc-modal .bdc-field :is(input, select, textarea):focus {
+	border-color: var(--bdc-c);
+	box-shadow: 0 0 0 3px var(--bdc-c-bg);
+	outline: none;
+}
+
+/* Cash to collect stands out: it is the number that matters most. */
+.bdc-modal .bdc-field:is([data-field="amount_to_collect"], [data-field="cod_amount"]) input {
+	border-color: var(--bdc-c);
+	background: var(--bdc-c-bg);
+	font-weight: 700;
+}
+
+.bdc-modal .bdc-field.bdc-field--note,
+.bdc-modal .bdc-field__help {
+	color: var(--bdc-muted);
+	font-size: 12px;
+}
+
+/* Errors. */
+.bdc-modal .bdc-field.has-error :is(input, select, textarea),
+.bdc-modal .bdc-field :is(input, select, textarea)[aria-invalid="true"] {
+	border-color: #dc2626;
+	box-shadow: 0 0 0 3px #fee2e2;
+}
+
+.bdc-modal .bdc-field__error {
+	margin: 6px 0 0;
+	color: #b91c1c;
+	font-size: 12px;
+	font-weight: 500;
+}
+
+.bdc-modal .bdc-form__error {
+	margin: 4px 0 12px;
+	padding: 10px 12px;
+	border: 1px solid #fecaca;
+	border-radius: 10px;
+	background: #fef2f2;
+	color: #991b1b;
+	font-size: 13px;
+}
+
+/* Footer: soft bar, hint on the left, actions on the right. */
+.bdc-modal .bdc-form__footer {
+	position: sticky;
+	bottom: 0;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 10px;
+	padding: 14px 22px;
+	border-top: 1px solid var(--bdc-line);
+	background: rgba(248, 250, 252, 0.96);
+	-webkit-backdrop-filter: blur(6px);
+	backdrop-filter: blur(6px);
+}
+
+.bdc-modal .bdc-form__hint {
+	flex: 1 1 220px;
+	margin: 0;
+	color: var(--bdc-muted);
+	font-size: 12px;
+}
+
+.bdc-modal .bdc-form__footer .button {
+	box-sizing: border-box;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 7px;
+	height: var(--bdc-ctl-h);
+	min-height: var(--bdc-ctl-h);
+	margin: 0;
+	padding: 0 18px;
+	border-radius: 10px;
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 1;
+}
+
+.bdc-modal .bdc-form__footer .bdc-modal__cancel {
+	border: 1px solid var(--bdc-line);
+	background: var(--bdc-surface);
+	color: var(--bdc-text);
+}
+
+.bdc-modal .bdc-form__footer .bdc-modal__cancel:hover {
+	border-color: var(--bdc-line-strong);
+	background: var(--bdc-soft);
+	color: var(--bdc-ink);
+}
+
+/* The send button wears the courier's colour. */
+.bdc-modal .bdc-form__footer :is(.bdc-form__submit, .bdc-bulk__submit) {
+	padding: 0 20px;
+	border: 1px solid var(--bdc-c);
+	background: var(--bdc-c);
+	box-shadow: 0 4px 12px -4px var(--bdc-c);
+	color: #fff;
+}
+
+.bdc-modal .bdc-form__footer :is(.bdc-form__submit, .bdc-bulk__submit):hover,
+.bdc-modal .bdc-form__footer :is(.bdc-form__submit, .bdc-bulk__submit):focus {
+	border-color: var(--bdc-c);
+	background: var(--bdc-c);
+	color: #fff;
+	filter: brightness(0.94);
+	box-shadow: 0 6px 16px -4px var(--bdc-c);
+}
+
+.bdc-modal .bdc-form__footer :is(.bdc-form__submit, .bdc-bulk__submit):disabled {
+	opacity: 0.7;
+	filter: none;
+}
+
+.bdc-modal .bdc-form__submit-icon {
+	flex: none;
+	width: 15px;
+	height: 15px;
+}
+
+/* Bulk send: same card look for the shared settings and the parcel table. */
+.bdc-modal .bdc-bulk .bdc-bulk__scroll {
+	border: 1px solid var(--bdc-line);
+	border-radius: 14px;
+}
+
+.bdc-modal .bdc-bulk .bdc-bulk__table thead th {
+	background: #f8fafc;
+	color: var(--bdc-muted);
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+.bdc-modal .bdc-bulk .bdc-bulk__table :is(input, select, textarea) {
+	min-height: 38px;
+	border: 1px solid var(--bdc-line);
+	border-radius: 9px;
+	box-shadow: none;
+}
+
+.bdc-modal .bdc-bulk .bdc-bulk__table :is(input, select, textarea):focus {
+	border-color: var(--bdc-c);
+	box-shadow: 0 0 0 3px var(--bdc-c-bg);
+	outline: none;
+}
+
+/* Phones: the popup becomes a full-height sheet with the actions always in reach. */
+@media (max-width: 600px) {
+	.bdc-modal {
+		padding: 0;
+		align-items: stretch;
+	}
+
+	.bdc-modal__dialog {
+		display: flex;
+		flex-direction: column;
+		min-height: 100%;
+		border: 0;
+		border-radius: 0;
+	}
+
+	.bdc-modal .bdc-form,
+	.bdc-modal .bdc-bulk {
+		display: flex;
+		flex: 1;
+		flex-direction: column;
+	}
+
+	.bdc-modal .bdc-form__body {
+		flex: 1;
+		padding: 14px 14px 4px;
+	}
+
+	.bdc-modal .bdc-form__header {
+		padding: 16px 14px 12px;
+	}
+
+	.bdc-modal .bdc-form__header h2 {
+		font-size: 15.5px;
+	}
+
+	.bdc-modal .bdc-fieldset {
+		padding: 12px 12px 4px;
+	}
+
+	.bdc-modal .bdc-grid > .bdc-field {
+		grid-column: 1 / -1;
+	}
+
+	.bdc-modal .bdc-form__footer {
+		padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
+	}
+
+	.bdc-modal .bdc-form__hint {
+		flex-basis: 100%;
+		order: -1;
+	}
+
+	.bdc-modal .bdc-form__footer .button {
+		flex: 1 1 0;
+	}
+
+	.bdc-modal .bdc-form__footer :is(.bdc-form__submit, .bdc-bulk__submit) {
+		flex: 2 1 0;
+	}
+}
+
+/* Cash to collect: bold and a touch larger, without a colour that could read as an error. */
+.bdc-modal .bdc-field:is([data-field="amount_to_collect"], [data-field="cod_amount"]) input {
+	border-color: var(--bdc-line-strong);
+	background: var(--bdc-surface);
+	color: var(--bdc-ink);
+	font-size: 15px;
+	font-weight: 700;
+}
+
+/* ---- Customer record placeholder while the couriers answer ---- */
+.bdc-score-skeleton {
+	display: grid;
+	flex: 1 1 100%;
+	gap: 8px;
+	width: 100%;
+	padding: 4px 0;
+}
+
+.bdc-score-skeleton__bar {
+	height: 14px !important;
+	border-radius: 7px !important;
+}
+
+.bdc-score-skeleton__bar--short {
+	width: 45%;
+}
+
+.bdc-score-skeleton__bar--mid {
+	width: 70%;
+}
+
+.bdc-record .bdc-score-skeleton {
+	padding: 6px 0 10px;
+}
+
+.bdc-record .bdc-score-skeleton__bar {
+	height: 18px !important;
 }
