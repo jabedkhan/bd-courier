@@ -1070,3 +1070,141 @@
 .bdc-checkout-on .bdc-areas + #order_comments_field {
 	margin-top: 18px !important;
 }
+
+/* ---- Address box: same height as the order notes box ---- */
+.bdc-checkout-on form.checkout textarea#billing_address_1,
+.bdc-checkout-on form.checkout textarea#order_comments {
+	height: 96px;
+	min-height: 96px;
+}
+
+/* ---- Theme fixes (Bricks and others): one tidy flow at every width ---- */
+
+/* Bricks puts the form in a 56% / auto grid; our layout already has its own columns. */
+.bdc-checkout-on form.woocommerce-checkout.bricks-default-checkout,
+.bdc-checkout-on form.woocommerce-checkout {
+	display: block;
+	box-sizing: border-box;
+	width: 100%;
+	max-width: 100%;
+	min-width: 0;
+}
+
+.bdc-checkout-on form.woocommerce-checkout > * {
+	box-sizing: border-box;
+	max-width: 100%;
+	min-width: 0;
+}
+
+.bdc-checkout-on #customer_details,
+.bdc-checkout-on #order_review,
+.bdc-checkout-on #order_review_heading {
+	float: none;
+	width: 100%;
+	margin-right: 0;
+	margin-left: 0;
+}
+
+/* Empty shipping block and the notes block carry theme margins that push the
+   delivery area down. They take no space, so the area sits at the very top. */
+.bdc-checkout-on #customer_details .woocommerce-shipping-fields {
+	display: none;
+}
+
+.bdc-checkout-on #customer_details .woocommerce-additional-fields {
+	margin: 0;
+	padding: 0;
+}
+
+.bdc-checkout-on #customer_details .col-2 {
+	justify-content: flex-start;
+	gap: 0;
+}
+
+.bdc-checkout-on #customer_details .col-2 > :first-child,
+.bdc-checkout-on #customer_details .col-2 .woocommerce-additional-fields > :first-child {
+	margin-top: 0;
+}
+
+@media (max-width: 768px) {
+	/* One column; the theme's flex gap and our margin together made a double gap. */
+	.bdc-checkout-on #customer_details.col2-set {
+		display: flex;
+		flex-direction: column;
+		gap: 14px;
+		margin: 0 0 20px;
+	}
+
+	.bdc-checkout-on #customer_details .col-1,
+	.bdc-checkout-on #customer_details .col-2 {
+		margin: 0;
+	}
+
+	.bdc-checkout-on #customer_details .col-1 .woocommerce-billing-fields__field-wrapper > .form-row:last-child {
+		margin-bottom: 0;
+	}
+
+	.bdc-checkout-on #order_review {
+		padding: 16px;
+	}
+
+	.bdc-checkout-on #order_review table.shop_table {
+		width: 100%;
+		table-layout: auto;
+	}
+
+	.bdc-checkout-on #order_review table.shop_table :is(th, td) {
+		padding: 12px 8px;
+		white-space: normal;
+		overflow-wrap: anywhere;
+	}
+
+	.bdc-checkout-on #order_review table.shop_table :is(th, td):first-child {
+		padding-left: 0;
+	}
+
+	.bdc-checkout-on #order_review table.shop_table :is(th, td):last-child {
+		padding-right: 0;
+	}
+
+	.bdc-checkout-on #payment #place_order {
+		width: 100%;
+	}
+}
+
+@media (max-width: 420px) {
+	.bdc-checkout-on #customer_details .col-1,
+	.bdc-checkout-on #customer_details .col-2,
+	.bdc-checkout-on #order_review {
+		padding: 14px;
+		border-radius: 14px;
+	}
+
+	.bdc-checkout-on form.checkout .input-text,
+	.bdc-checkout-on form.checkout textarea {
+		padding: 12px 14px;
+	}
+}
+
+/* "Message copied" hint after opening Messenger on a computer. */
+.bdc-copied-tip {
+	position: fixed;
+	bottom: 24px;
+	left: 50%;
+	z-index: 100000;
+	padding: 10px 16px;
+	border-radius: 999px;
+	background: #111827;
+	box-shadow: 0 12px 30px -10px rgba(15, 23, 42, 0.45);
+	color: #fff;
+	font-size: 14px;
+	font-weight: 500;
+	line-height: 1.3;
+	transform: translateX(-50%);
+	transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.bdc-copied-tip.is-gone {
+	opacity: 0;
+	transform: translate(-50%, 8px);
+}

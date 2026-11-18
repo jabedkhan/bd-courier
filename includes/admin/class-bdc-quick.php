@@ -34,7 +34,7 @@ class BDC_Quick {
 	 */
 	public static function bulk_statuses() {
 		$chosen = array_filter( array_map( 'sanitize_key', explode( ',', (string) BDC_Settings::get( 'general', 'bulk_statuses', '' ) ) ) );
-		return array_intersect_key( BDC_Statuses::extra() + BDC_Statuses::all(), array_flip( $chosen ) );
+		return array_intersect_key( BDC_Statuses::extra() + BDC_Statuses::order_statuses(), array_flip( $chosen ) );
 	}
 
 	/** WooCommerce handles any "mark_{status}" action itself; these only add the menu entries. */
@@ -98,7 +98,7 @@ class BDC_Quick {
 		}
 
 		$parcel = array();
-		foreach ( BDC_Statuses::all() as $key => $label ) {
+		foreach ( BDC_Statuses::order_statuses() as $key => $label ) {
 			$parcel[ BDC_Statuses::slug( $key ) ] = $label;
 		}
 

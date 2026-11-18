@@ -34,7 +34,7 @@ Pathao and Steadfast stay completely separate: their own credentials, settings, 
 **Following parcels**
 - Parcel status updates arrive automatically from Pathao and Steadfast (webhooks).
 - A scheduled check catches any update that was missed.
-- The WooCommerce order status follows the parcel: Sent to Courier → In Transit → Delivered, and so on.
+- The WooCommerce order status follows the parcel: Sent to Courier → In Transit → Completed, and so on. A delivered parcel puts the order in WooCommerce's own **Completed** status.
 - A **Shipments** page listing every parcel from both couriers, with search and filters.
 
 **Managing orders**
@@ -228,7 +228,7 @@ BD Courier adds these WooCommerce order statuses:
 | Picked Up | The courier collected the parcel |
 | In Transit | On its way |
 | Out for Delivery | With the rider |
-| Delivered | Delivered to the customer (counts as paid) |
+| Completed | WooCommerce's own status, used once the parcel is delivered |
 | Partial Delivery | The customer kept part of the order (counts as paid) |
 | On Hold at Courier | Delayed or a delivery attempt failed |
 | Returned | Coming back to you |
@@ -236,7 +236,7 @@ BD Courier adds these WooCommerce order statuses:
 
 When **Follow the parcel status** is on (the default), the order moves between these automatically as the courier reports progress. Every change adds an order note.
 
-The Orders **Bulk actions** menu offers "Change status to…" for **Confirmed**, **Delivered** and **Returned** by default. Choose which appear in **Settings → General → Bulk status changes**. Every status is always available in the quick view.
+The Orders **Bulk actions** menu offers "Change status to…" for **Confirmed** and **Returned** by default (WooCommerce already offers **Completed**). Choose which appear in **Settings → General → Bulk status changes**. Every status is always available in the quick view.
 
 ---
 
@@ -316,3 +316,7 @@ An order can only have one parcel. Open it in the courier's merchant panel to ma
 
 **Printing looks wrong**
 In your browser's print dialog, choose the matching paper size (A4 for invoices, 100 × 150 mm for labels), set margins to *Default* or *None*, and turn on *Background graphics*.
+
+## Credits
+
+Made by [Jabed Khan](https://jabedkhan.com/) with help from Claude.

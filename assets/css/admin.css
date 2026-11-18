@@ -538,45 +538,6 @@ a.bdc-consignment:hover {
 	margin: 4px 0 0 -5px;
 }
 
-/* "Edited here, not on the courier yet" */
-.bdc-flag {
-	margin-top: 6px;
-	padding: 6px 8px;
-	border-radius: var(--bdc-radius-sm);
-	background: var(--bdc-warn-bg);
-	font-size: 12px;
-	line-height: 1.45;
-	color: #713f12;
-}
-
-.bdc-flag__text {
-	display: flex;
-	align-items: flex-start;
-	gap: 4px;
-	font-weight: 600;
-}
-
-.bdc-flag__text .dashicons {
-	flex: 0 0 14px;
-	width: 14px;
-	height: 14px;
-	margin-top: 1px;
-	font-size: 14px;
-}
-
-.bdc-flag__actions {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 2px 12px;
-	margin-top: 2px;
-	padding-left: 18px;
-}
-
-.bdc-flag .bdc-link {
-	color: #713f12;
-	text-decoration: underline;
-}
-
 /* Order status colours (Orders list and quick view) */
 .order-status.status-bdc-confirmed {
 	color: #4c1d95;
@@ -595,7 +556,6 @@ a.bdc-consignment:hover {
 	background: #cfe0fb;
 }
 
-.order-status.status-bdc-delivered,
 .order-status.status-bdc-partial {
 	color: #14532d;
 	background: #c8ebd3;
@@ -2256,7 +2216,6 @@ a.bdc-card {
 }
 
 .status-completed .bdc-status-button__dot,
-.status-bdc-delivered .bdc-status-button__dot,
 .status-bdc-partial .bdc-status-button__dot {
 	background: #22c55e;
 }
@@ -2876,11 +2835,6 @@ a.bdc-card {
 	white-space: nowrap;
 }
 
-.bdc-shipments__table .bdc-flag {
-	max-width: 240px;
-	white-space: normal;
-}
-
 /* Not enough room for eight columns: each parcel becomes a card. */
 @container bdc-list (max-width: 940px) {
 	.bdc-shipments__table,
@@ -2954,10 +2908,6 @@ a.bdc-card {
 
 	.bdc-shipments__table .bdc-parcel__actions {
 		margin: -3px 0 0 -5px;
-	}
-
-	.bdc-shipments__table .bdc-flag {
-		max-width: none;
 	}
 }
 
@@ -3239,7 +3189,6 @@ mark.order-status.status-bdc-out {
 	color: #1e40af;
 }
 
-mark.order-status.status-bdc-delivered,
 mark.order-status.status-bdc-partial {
 	background: #dcfce7;
 	color: #166534;
@@ -4563,8 +4512,7 @@ td.column-bdc_courier .bdc-consignment {
 		grid-area: status;
 	}
 
-	.bdc-shipments__table tbody tr.bdc-shipment:not(.is-open) .bdc-col-status .bdc-block,
-	.bdc-shipments__table tbody tr.bdc-shipment:not(.is-open) .bdc-col-status .bdc-flag {
+	.bdc-shipments__table tbody tr.bdc-shipment:not(.is-open) .bdc-col-status .bdc-block {
 		display: none;
 	}
 
@@ -8067,4 +8015,58 @@ td.column-bdc_courier .bdc-consignment {
 
 .bdc-settings .bdc-tabs a.is-current .bdc-tab-icon {
 	opacity: 1;
+}
+
+/* Shipments page uses the full width, like Reports and Orders. */
+.bdc-page.bdc-shipments {
+	max-width: none;
+}
+
+/* Phones: the popup sheet scrolls inside itself (it used to be clipped). */
+@media (max-width: 600px) {
+	.bdc-modal {
+		overflow: hidden;
+	}
+
+	.bdc-modal .bdc-modal__dialog {
+		height: 100%;
+		min-height: 0;
+		max-height: 100%;
+		overflow-x: hidden;
+		overflow-y: auto;
+		overscroll-behavior: contain;
+		-webkit-overflow-scrolling: touch;
+		scrollbar-width: none;
+	}
+
+	.bdc-modal .bdc-modal__dialog::-webkit-scrollbar {
+		display: none;
+	}
+
+	.bdc-modal .bdc-form,
+	.bdc-modal .bdc-bulk {
+		flex: 1 0 auto;
+	}
+}
+
+body.bdc-modal-open {
+	overflow: hidden;
+}
+
+/* Courier ID with its copy button, on the badge line. */
+.bdc-phone-line:has(> .bdc-consignment) {
+	display: inline-flex;
+	min-width: 0;
+	margin-top: 0;
+}
+
+.bdc-phone-line > .bdc-consignment.bdc-has-copy {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.bdc-phone-line > .bdc-consignment + .bdc-copy-phone {
+	flex: none;
+	margin-left: 2px;
 }

@@ -34,6 +34,21 @@ class BDC_Statuses {
 	}
 
 	/**
+	 * Parcel statuses that are also order statuses. A delivered parcel puts the
+	 * order in WooCommerce's own "Completed", so there is no separate "Delivered".
+	 */
+	public static function order_statuses() {
+		$statuses = self::all();
+		unset( $statuses['delivered'] );
+		return $statuses;
+	}
+
+	/** The WooCommerce order status (without "wc-") for one of our keys. */
+	public static function order_slug( $key ) {
+		return 'delivered' === $key ? 'completed' : self::slug( $key );
+	}
+
+	/**
 	 * Order statuses that are not about a parcel. "Confirmed" is for the team
 	 * to mark an order as checked with the customer.
 	 */
@@ -53,7 +68,12 @@ class BDC_Statuses {
 	}
 
 	public static function register() {
-		foreach ( self::extra() + self::all() as $key => $label ) {
+		$statuses = self::extra() + self::order_statuses();
+		// Until old "Delivered" orders are moved to Completed, keep the status known.
+		if ( (int) get_option( 'bdc_data_version', 0 ) < 4 ) {
+			$statuses['delivered'] = self::label( 'delivered' );
+		}
+		foreach ( $statuses as $key => $label ) {
 			register_post_status(
 				'wc-' . self::slug( $key ),
 				array(
@@ -81,7 +101,7 @@ class BDC_Statuses {
 				}
 			}
 		}
-		foreach ( self::extra() + self::all() as $key => $label ) {
+		foreach ( self::extra() + self::order_statuses() as $key => $label ) {
 			if ( ! isset( $result[ 'wc-' . self::slug( $key ) ] ) ) {
 				$result[ 'wc-' . self::slug( $key ) ] = $label;
 			}
@@ -90,9 +110,8 @@ class BDC_Statuses {
 		return $result;
 	}
 
-	/** A delivered parcel counts as a paid order. */
+	/** A partly delivered parcel counts as a paid order (delivered ones are Completed). */
 	public static function paid_statuses( $statuses ) {
-		$statuses[] = self::slug( 'delivered' );
 		$statuses[] = self::slug( 'partial' );
 		return $statuses;
 	}
@@ -102,7 +121,7 @@ class BDC_Statuses {
 		if ( ! is_array( $statuses ) ) {
 			return $statuses;
 		}
-		foreach ( array( 'confirmed', 'sent', 'picked', 'transit', 'out', 'delivered', 'partial', 'hold' ) as $key ) {
+		foreach ( array( 'confirmed', 'sent', 'picked', 'transit', 'out', 'partial', 'hold' ) as $key ) {
 			$statuses[] = self::slug( $key );
 		}
 		return array_unique( $statuses );
@@ -115,9 +134,35 @@ class BDC_Statuses {
 		if ( 'yes' !== BDC_Settings::get( 'general', 'update_order_status', 'yes' ) ) {
 			return;
 		}
-		if ( '' === self::label( $key ) || $order->has_status( self::slug( $key ) ) ) {
+		if ( '' === self::label( $key ) || $order->has_status( self::order_slug( $key ) ) ) {
 			return;
 		}
-		$order->update_status( self::slug( $key ), $note );
+		$order->update_status( self::order_slug( $key ), $note );
+	}
+
+	/**
+	 * Orders left in the old "Delivered" status move to Completed, quietly:
+	 * customers already had their parcel, so no "order complete" email is sent.
+	 */
+	public static function merge_delivered() {
+		$quiet = '__return_false';
+		add_filter( 'woocommerce_email_enabled_customer_completed_order', $quiet, 99 );
+
+		$rounds = 0;
+		do {
+			$orders = wc_get_orders(
+				array(
+					'status' => array( 'wc-' . self::slug( 'delivered' ) ),
+					'limit'  => 100,
+					'return' => 'objects',
+				)
+			);
+			foreach ( $orders as $order ) {
+				$order->set_status( 'completed', __( 'Delivered orders are now shown as Completed.', 'bd-courier' ) );
+				$order->save();
+			}
+		} while ( 100 === count( $orders ) && ++$rounds < 100 );
+
+		remove_filter( 'woocommerce_email_enabled_customer_completed_order', $quiet, 99 );
 	}
 }

@@ -109,7 +109,7 @@ class BDC_Settings_Page {
 				'enabled'     => isset( $posted['enabled'] ) ? 'yes' : 'no',
 				'order_notes' => isset( $posted['order_notes'] ) ? 'yes' : 'no',
 			);
-			foreach ( array( 'heading_details', 'label_name', 'label_phone', 'label_address', 'label_area', 'label_notes', 'heading_order', 'button_text', 'area_inside', 'area_sub', 'area_outside', 'time_inside', 'time_sub', 'time_outside', 'help_text', 'thankyou_title' ) as $key ) {
+			foreach ( array( 'heading_details', 'label_name', 'label_phone', 'label_address', 'label_area', 'label_notes', 'ph_name', 'ph_phone', 'ph_address', 'ph_notes', 'heading_order', 'button_text', 'area_inside', 'area_sub', 'area_outside', 'time_inside', 'time_sub', 'time_outside', 'help_text', 'thankyou_title' ) as $key ) {
 				$values[ $key ] = $text( $key );
 			}
 			foreach ( array( 'trust_points', 'thankyou_text', 'thankyou_steps' ) as $key ) {
@@ -201,7 +201,7 @@ class BDC_Settings_Page {
 					'bulk_statuses'       => implode(
 						',',
 						array_intersect(
-							array_keys( BDC_Statuses::extra() + BDC_Statuses::all() ),
+							array_keys( BDC_Statuses::extra() + BDC_Statuses::order_statuses() ),
 							isset( $posted['bulk_statuses'] ) && is_array( $posted['bulk_statuses'] ) ? array_map( 'sanitize_key', $posted['bulk_statuses'] ) : array()
 						)
 					),
@@ -416,7 +416,7 @@ class BDC_Settings_Page {
 				<fieldset class="bdc-checks">
 					<legend class="screen-reader-text"><?php esc_html_e( 'Statuses in the Orders bulk-actions menu', 'bd-courier' ); ?></legend>
 					<?php $bulk_chosen = array_keys( BDC_Quick::bulk_statuses() ); ?>
-					<?php foreach ( BDC_Statuses::extra() + BDC_Statuses::all() as $status_key => $status_label ) : ?>
+					<?php foreach ( BDC_Statuses::extra() + BDC_Statuses::order_statuses() as $status_key => $status_label ) : ?>
 						<label class="bdc-check">
 							<input type="checkbox" name="bdc[bulk_statuses][]" value="<?php echo esc_attr( $status_key ); ?>" <?php checked( in_array( $status_key, $bulk_chosen, true ) ); ?>>
 							<span><?php echo esc_html( $status_label ); ?></span>
@@ -569,6 +569,21 @@ class BDC_Settings_Page {
 				'label_notes'     => __( 'Order notes', 'bd-courier' ),
 				'heading_order'   => __( 'Order summary heading', 'bd-courier' ),
 				'button_text'     => __( 'Order button', 'bd-courier' ),
+			) as $key => $title ) :
+				?>
+				<?php self::row_open( $title, 'bdc-checkout-' . $key ); ?>
+					<input type="text" id="bdc-checkout-<?php echo esc_attr( $key ); ?>" name="bdc[<?php echo esc_attr( $key ); ?>]" value="<?php echo esc_attr( $c[ $key ] ); ?>" placeholder="<?php echo esc_attr( $defaults[ $key ] ); ?>">
+				<?php self::row_close(); ?>
+			<?php endforeach; ?>
+		<?php self::panel_close(); ?>
+
+		<?php self::panel_open( __( 'Placeholders', 'bd-courier' ), __( 'Grey example text inside each empty field, so customers know what to write.', 'bd-courier' ), '', '', 'grid' ); ?>
+			<?php
+			foreach ( array(
+				'ph_name'    => __( 'Name', 'bd-courier' ),
+				'ph_phone'   => __( 'Mobile number', 'bd-courier' ),
+				'ph_address' => __( 'Address', 'bd-courier' ),
+				'ph_notes'   => __( 'Order notes', 'bd-courier' ),
 			) as $key => $title ) :
 				?>
 				<?php self::row_open( $title, 'bdc-checkout-' . $key ); ?>

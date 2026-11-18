@@ -344,7 +344,6 @@ class BDC_Shipments {
 						?>
 					</span>
 				<?php endif; ?>
-				<?php echo $parts['flag']; // phpcs:ignore WordPress.Security.EscapeOutput ?>
 			</td>
 			<td class="bdc-col-money" data-label="<?php esc_attr_e( 'Cash to collect', 'bd-courier' ); ?>"><?php echo '' !== (string) $shipment['cod'] ? esc_html( BDC_View::money( $shipment['cod'] ) ) : '&mdash;'; ?></td>
 			<td class="bdc-col-money" data-label="<?php esc_attr_e( 'Delivery fee', 'bd-courier' ); ?>"><?php echo '' !== (string) $shipment['delivery_fee'] ? esc_html( BDC_View::money( $shipment['delivery_fee'] ) ) : '&mdash;'; ?></td>

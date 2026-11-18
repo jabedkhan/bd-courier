@@ -15,6 +15,23 @@ class BDC_Admin {
 
 		add_action( 'add_meta_boxes', array( __CLASS__, 'meta_box' ) );
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'assets' ) );
+		add_filter( 'admin_footer_text', array( __CLASS__, 'footer_credit' ), 99 );
+	}
+
+	/** Credit line at the bottom of BD Courier's own pages. */
+	public static function footer_credit( $text ) {
+		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
+		if ( 0 !== strpos( $page, 'bd-courier' ) && 0 !== strpos( $page, 'bdc-' ) ) {
+			return $text;
+		}
+		return sprintf(
+			'<span class="bdc-credit">%s</span>',
+			sprintf(
+				/* translators: %s: author name linked to the author's website */
+				esc_html__( 'BD Courier, made by %s with help from Claude.', 'bd-courier' ),
+				'<a href="https://jabedkhan.com/" target="_blank" rel="noopener">Jabed Khan</a>'
+			)
+		);
 	}
 
 	public static function order_screens() {
@@ -154,6 +171,7 @@ class BDC_Admin {
 					'showDetails'  => __( 'Show all details', 'bd-courier' ),
 					'hideDetails'  => __( 'Hide details', 'bd-courier' ),
 					'copyPhone'    => __( 'Copy phone number', 'bd-courier' ),
+					'copyId'       => __( 'Copy courier ID', 'bd-courier' ),
 					'customerRecord' => __( 'Customer record', 'bd-courier' ),
 					'filters'      => __( 'Filters', 'bd-courier' ),
 					'dateFrom'     => __( 'From', 'bd-courier' ),

@@ -41,7 +41,6 @@ class BDC_Shipment {
 			'history'        => array(),
 			'imported'       => false,
 			'checked_at'     => 0, // Last time the courier told us, or was asked, about this parcel.
-			'unsynced'       => false, // Edited here, not yet changed at the courier.
 		);
 	}
 
@@ -60,7 +59,7 @@ class BDC_Shipment {
 		$order->update_meta_data( '_bdc_status', $data['status'] );
 		$order->update_meta_data( '_bdc_sent_at', (int) $data['sent_at'] );
 		$order->update_meta_data( '_bdc_checked_at', (int) ( $data['checked_at'] ?? 0 ) );
-		$order->update_meta_data( '_bdc_unsynced', ! empty( $data['unsynced'] ) ? 'yes' : 'no' );
+		$order->delete_meta_data( '_bdc_unsynced' );
 		$order->update_meta_data( '_bdc_phone', (string) ( $data['details']['recipient_phone'] ?? $order->get_billing_phone() ) );
 		$order->update_meta_data( '_bdc_name', (string) ( $data['details']['recipient_name'] ?? $order->get_formatted_billing_full_name() ) );
 		$order->save();
@@ -118,7 +117,13 @@ class BDC_Shipment {
 	 * Runs once per data version.
 	 */
 	public static function maybe_upgrade() {
-		if ( (int) get_option( 'bdc_data_version', 0 ) >= 3 ) {
+		$version = (int) get_option( 'bdc_data_version', 0 );
+		if ( $version >= 4 ) {
+			return;
+		}
+		if ( $version >= 3 ) {
+			BDC_Statuses::merge_delivered();
+			update_option( 'bdc_data_version', 4, false );
 			return;
 		}
 
@@ -142,7 +147,8 @@ class BDC_Shipment {
 			}
 		}
 
-		update_option( 'bdc_data_version', 3, false );
+		BDC_Statuses::merge_delivered();
+		update_option( 'bdc_data_version', 4, false );
 	}
 
 	/**

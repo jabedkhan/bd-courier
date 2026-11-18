@@ -7,7 +7,7 @@ defined( 'ABSPATH' ) || exit;
 class BDC_Ajax {
 
 	public static function init() {
-		foreach ( array( 'form', 'send', 'synced', 'refresh', 'locations', 'score', 'steadfast_account' ) as $action ) {
+		foreach ( array( 'form', 'send', 'refresh', 'locations', 'score', 'steadfast_account', 'pathao_account' ) as $action ) {
 			add_action( 'wp_ajax_bdc_' . $action, array( __CLASS__, $action ) );
 		}
 	}
@@ -125,30 +125,6 @@ class BDC_Ajax {
 
 		wp_send_json_success( array( 'html' => BDC_View::form( $courier, $order ) ) );
 	}
-	/** Staff confirm the edit was also made in the courier's panel. */
-	public static function synced() {
-		self::guard();
-		$order                      = self::order();
-		list( $shipment, $courier ) = self::sent_parcel( $order );
-
-		if ( ! empty( $shipment['unsynced'] ) ) {
-			$shipment['unsynced'] = false;
-			BDC_Shipment::save( $order, $shipment );
-
-			$order->add_order_note(
-				sprintf(
-					/* translators: %s: courier name */
-					__( 'Edited parcel details marked as updated on %s.', 'bd-courier' ),
-					$courier->label()
-				),
-				false,
-				false
-			);
-		}
-
-		wp_send_json_success( array( 'cell' => BDC_View::cell( $order ) ) );
-	}
-
 	/** Create the parcel at the courier. */
 	public static function send() {
 		self::guard();
@@ -320,6 +296,18 @@ class BDC_Ajax {
 		}
 
 		wp_send_json_success( array( 'html' => BDC_Reports::steadfast_account_html( $account ) ) );
+	}
+
+	/** Pathao account card on Reports, optionally after asking Pathao about open parcels. */
+	public static function pathao_account() {
+		self::guard();
+		$courier = BDC_Couriers::get( 'pathao' );
+		if ( ! $courier || ! $courier->is_active() ) {
+			wp_send_json_error( array( 'message' => __( 'Pathao is turned off or not connected.', 'bd-courier' ) ), 400 );
+		}
+
+		$update = ! empty( $_POST['force'] ); // phpcs:ignore WordPress.Security.NonceVerification
+		wp_send_json_success( array( 'html' => BDC_Reports::pathao_account_html( BDC_Reports::pathao_account( $update ) ) ) );
 	}
 
 	/** Pathao zones of a city, or areas of a zone. */

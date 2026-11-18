@@ -120,13 +120,14 @@
 			'</div>'
 		);
 		$modal.find( '.bdc-modal__loading' ).text( text.loading );
-		$( 'body' ).append( $modal );
+		$( 'body' ).append( $modal ).addClass( 'bdc-modal-open' );
 	}
 
 	function closeModal() {
 		if ( $modal ) {
 			$modal.remove();
 			$modal = null;
+			$( 'body' ).removeClass( 'bdc-modal-open' );
 			if ( lastFocus ) {
 				lastFocus.focus();
 			}
@@ -443,7 +444,7 @@
 
 	// After sending or refreshing from inside the quick view, forget WooCommerce's saved copy too.
 	$( document ).ajaxSuccess( function ( event, xhr, settings ) {
-		var match = settings && 'string' === typeof settings.data && /action=bdc_(send|refresh|synced)\b/.test( settings.data ) && settings.data.match( /order_id=(\d+)/ );
+		var match = settings && 'string' === typeof settings.data && /action=bdc_(send|refresh)\b/.test( settings.data ) && settings.data.match( /order_id=(\d+)/ );
 		if ( match ) {
 			$( '.order-preview[data-order-id="' + match[ 1 ] + '"]' ).removeData( 'order-data' ).removeData( 'orderData' );
 		}
@@ -784,25 +785,6 @@
 		next();
 	} );
 
-	/* ---- Edited parcel: confirm it was changed at the courier ---- */
-
-	$( document ).on( 'click', '.bdc-synced', function ( event ) {
-		event.preventDefault();
-		event.stopPropagation();
-
-		var orderId = $( this ).data( 'order' );
-		var $cell = $( this ).closest( '.bdc-cell, tr.bdc-shipment' ).addClass( 'is-busy' );
-
-		post( 'synced', { order_id: orderId } )
-			.done( function ( response ) {
-				updateOrder( orderId, response.data );
-			} )
-			.fail( function ( xhr ) {
-				$cell.removeClass( 'is-busy' );
-				toast( errorOf( xhr ).message, true );
-			} );
-	} );
-
 	/* ---- Orders list: phone number under the customer name (new order storage) ---- */
 
 	$( function () {
@@ -1003,7 +985,7 @@
 
 	$( addOrderToggles );
 
-	/* ---- A tiny copy button beside every phone number ---- */
+	/* ---- A tiny copy button beside every phone number and courier ID ---- */
 
 	var COPY_ICON  = '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>';
 	var COPIED_ICON = '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 6 9 17l-5-5"/></svg>';
@@ -1022,18 +1004,20 @@
 			'.wc-order-preview a[href^="tel:"]',
 			'.bdc-quick a[href^="tel:"]',
 			'.bdc-modal a[href^="tel:"]',
-			'#order_data a[href^="tel:"]'
+			'#order_data a[href^="tel:"]',
+			'.bdc-consignment[data-copy]'
 		].join( ',' );
 
 		$( selector ).each( function () {
 			var $phone = $( this );
-			var number = phoneOf( this );
-			if ( $phone.data( 'bdcCopy' ) || number.replace( /\D/g, '' ).length < 6 ) {
+			var isId   = $phone.is( '[data-copy]' );
+			var number = isId ? String( $phone.attr( 'data-copy' ) ) : phoneOf( this );
+			if ( $phone.data( 'bdcCopy' ) || ( isId ? '' === number : number.replace( /\D/g, '' ).length < 6 ) ) {
 				return;
 			}
 			$phone.data( 'bdcCopy', true );
 
-			var label   = bdcText( 'copyPhone', 'Copy phone number' );
+			var label   = isId ? bdcText( 'copyId', 'Copy courier ID' ) : bdcText( 'copyPhone', 'Copy phone number' );
 			var $button = $( '<button type="button" class="bdc-copy-phone"></button>' )
 				.attr( { 'aria-label': label, title: label } )
 				.html( COPY_ICON );
@@ -1131,18 +1115,21 @@
 		} );
 	} );
 
-	/* ---- Reports: the Steadfast account card loads after the page ---- */
+	/* ---- Reports: the courier account cards load after the page ---- */
 
-	function loadSteadfastAccount( force ) {
-		var $card = $( '.bdc-sf-account' );
-		if ( ! $card.length ) {
-			return;
-		}
+	function loadAccount( $card, force ) {
 		var $button = $card.find( '.bdc-sf-account__refresh' ).prop( 'disabled', true );
+		var action = 'pathao' === $card.data( 'courier' ) ? 'pathao_account' : 'steadfast_account';
 		$card.addClass( 'is-loading' );
-		post( 'steadfast_account', { force: force ? 1 : 0 } )
+		post( action, { force: force ? 1 : 0 } )
 			.done( function ( response ) {
 				$card.find( '.bdc-sf-account__body' ).html( response.data.html );
+				if ( force && 'pathao_account' === action ) {
+					// Statuses may have changed: reload so the report below matches.
+					window.setTimeout( function () {
+						window.location.reload();
+					}, 1500 );
+				}
 			} )
 			.fail( function ( xhr ) {
 				$card.find( '.bdc-sf-account__body' ).empty().append( $( '<p class="bdc-score__error"></p>' ).text( errorOf( xhr ).message ) );
@@ -1154,10 +1141,12 @@
 	}
 
 	$( function () {
-		loadSteadfastAccount( false );
+		$( '.bdc-sf-account' ).each( function () {
+			loadAccount( $( this ), false );
+		} );
 	} );
 	$( document ).on( 'click', '.bdc-sf-account__refresh', function () {
-		loadSteadfastAccount( true );
+		loadAccount( $( this ).closest( '.bdc-sf-account' ), true );
 	} );
 
 	/* ---- Date ranges: a "From" / "To" hint while a date is empty (phones show a blank box) ---- */

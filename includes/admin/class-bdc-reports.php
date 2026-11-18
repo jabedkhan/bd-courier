@@ -278,6 +278,138 @@ class BDC_Reports {
 		return ob_get_clean();
 	}
 
+	/**
+	 * Pathao account totals over every Pathao parcel sent from this shop.
+	 * Pathao's API has no balance or payment endpoint, so this is worked out
+	 * from the parcels themselves.
+	 *
+	 * @param bool $update Ask Pathao for the latest status of open parcels first.
+	 * @return array
+	 */
+	public static function pathao_account( $update = false ) {
+		$account = array(
+			'updated'       => 0,
+			'failed'        => 0,
+			'error'         => '',
+			'sent'          => 0,
+			'delivered'     => 0,
+			'returned'      => 0,
+			'open'          => 0,
+			'cod_collected' => 0.0,
+			'cod_out'       => 0.0,
+			'fees'          => 0.0,
+			'checked_at'    => time(),
+		);
+		$courier = BDC_Couriers::get( 'pathao' );
+		$started = time();
+		$page    = 1;
+
+		do {
+			$orders = BDC_Shipment::query_orders(
+				array(
+					array(
+						'key'   => '_bdc_courier',
+						'value' => 'pathao',
+					),
+				),
+				array(
+					'limit'   => 200,
+					'page'    => $page,
+					'orderby' => 'date',
+					'order'   => 'DESC',
+				)
+			);
+
+			foreach ( $orders as $order ) {
+				$shipment = BDC_Shipment::get( $order );
+				if ( ! $shipment || 'pathao' !== $shipment['courier'] ) {
+					continue;
+				}
+
+				// Refresh a limited number of open parcels, so the page answers quickly.
+				if ( $update && $courier && BDC_Shipment::is_open( $shipment ) && '' !== $shipment['consignment_id'] && '' === $account['error'] && $account['updated'] + $account['failed'] < 25 && time() - $started < 20 ) {
+					$result = $courier->fetch_status( $shipment );
+					if ( is_wp_error( $result ) ) {
+						++$account['failed'];
+						if ( in_array( $result->get_error_code(), array( 'bdc_auth', 'bdc_not_connected', 'bdc_network' ), true ) ) {
+							$account['error'] = $result->get_error_message();
+						}
+					} else {
+						$after = BDC_Shipment::update_status( $order, $result['courier_status'], $result );
+						++$account['updated'];
+						$shipment = $after ? $after : $shipment;
+					}
+				}
+
+				$cod = (float) $shipment['cod'];
+				++$account['sent'];
+				if ( in_array( $shipment['status'], array( 'delivered', 'partial' ), true ) ) {
+					++$account['delivered'];
+					// As on the rest of the page: a partial delivery's real amount is not known.
+					$account['cod_collected'] += 'delivered' === $shipment['status'] ? $cod : 0;
+				} elseif ( in_array( $shipment['status'], array( 'returned', 'cancelled' ), true ) ) {
+					++$account['returned'];
+				} else {
+					++$account['open'];
+					$account['cod_out'] += $cod;
+				}
+				if ( ! BDC_Shipment::is_open( $shipment ) && '' !== (string) $shipment['delivery_fee'] ) {
+					$account['fees'] += (float) $shipment['delivery_fee'];
+				}
+			}
+
+			++$page;
+		} while ( 200 === count( $orders ) && $page <= 50 );
+
+		return $account;
+	}
+
+	/** Inside of the Pathao account card. */
+	public static function pathao_account_html( array $account ) {
+		ob_start();
+		?>
+		<div class="bdc-sf-account__stats">
+			<?php
+			self::stat( 'money-alt', __( 'Cash collected', 'bd-courier' ), BDC_View::money( $account['cod_collected'] ), sprintf( /* translators: %d: number of parcels */ _n( 'from %d delivered parcel', 'from %d delivered parcels', $account['delivered'], 'bd-courier' ), $account['delivered'] ), 'good' );
+			self::stat( 'tag', __( 'Delivery fees', 'bd-courier' ), BDC_View::money( $account['fees'] ), __( 'on finished parcels', 'bd-courier' ) );
+			self::stat( 'yes-alt', __( 'Due to you', 'bd-courier' ), BDC_View::money( max( 0, $account['cod_collected'] - $account['fees'] ) ), __( 'cash collected minus fees, before payouts', 'bd-courier' ), 'good' );
+			self::stat( 'clock', __( 'Cash still out', 'bd-courier' ), BDC_View::money( $account['cod_out'] ), sprintf( /* translators: %d: number of parcels */ _n( '%d parcel on the way', '%d parcels on the way', $account['open'], 'bd-courier' ), $account['open'] ), 'warn' );
+			?>
+		</div>
+		<?php if ( '' !== $account['error'] ) : ?>
+			<p class="bdc-score__error"><?php echo esc_html( $account['error'] ); ?></p>
+		<?php endif; ?>
+		<p class="bdc-sf-account__note">
+			<?php
+			if ( $account['updated'] || $account['failed'] ) {
+				$asked = $account['updated'] + $account['failed'];
+				echo esc_html(
+					sprintf(
+						/* translators: %d: number of parcels */
+						_n( 'Updated %d parcel on the way from Pathao.', 'Updated %d parcels on the way from Pathao.', $asked, 'bd-courier' ),
+						$asked
+					)
+				) . ' ';
+				if ( $account['failed'] ) {
+					/* translators: %d: number of parcels */
+					echo esc_html( sprintf( _n( '%d could not be checked.', '%d could not be checked.', $account['failed'], 'bd-courier' ), $account['failed'] ) ) . ' ';
+				}
+			}
+			echo esc_html(
+				sprintf(
+					/* translators: %d: number of parcels */
+					_n( 'All time, worked out from %d Pathao parcel sent from this shop.', 'All time, worked out from %d Pathao parcels sent from this shop.', $account['sent'], 'bd-courier' ),
+					$account['sent']
+				)
+			);
+			echo ' ' . esc_html__( 'Pathao does not share your balance or payouts through its API; see them in the Pathao merchant panel.', 'bd-courier' );
+			?>
+			<a href="https://merchant.pathao.com/" target="_blank" rel="noopener"><?php esc_html_e( 'Open Pathao', 'bd-courier' ); ?></a>
+		</p>
+		<?php
+		return ob_get_clean();
+	}
+
 	/** Steadfast first, then Pathao, as on the comparison table. */
 	private static function ordered( array $couriers ) {
 		$sorted = array();
@@ -367,6 +499,27 @@ class BDC_Reports {
 							<?php esc_html_e( 'Your Steadfast account', 'bd-courier' ); ?>
 						</span>
 						<button type="button" class="button bdc-sf-account__refresh"><span class="dashicons dashicons-update" aria-hidden="true"></span><?php esc_html_e( 'Refresh', 'bd-courier' ); ?></button>
+					</header>
+					<div class="bdc-sf-account__body">
+						<div class="bdc-score-skeleton" aria-busy="true">
+							<span class="bdc-skeleton__field bdc-score-skeleton__bar"></span>
+							<span class="bdc-skeleton__field bdc-score-skeleton__bar bdc-score-skeleton__bar--short"></span>
+						</div>
+					</div>
+				</section>
+			<?php endif; ?>
+
+			<?php
+			$pathao = BDC_Couriers::get( 'pathao' );
+			if ( $pathao && $pathao->is_active() ) :
+				?>
+				<section class="bdc-sf-account bdc-pathao-account" data-courier="pathao" aria-live="polite">
+					<header class="bdc-sf-account__head">
+						<span class="bdc-sf-account__title">
+							<?php echo BDC_View::badge( $pathao ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+							<?php esc_html_e( 'Your Pathao account', 'bd-courier' ); ?>
+						</span>
+						<button type="button" class="button bdc-sf-account__refresh" title="<?php esc_attr_e( 'Ask Pathao for the latest status of parcels still on the way', 'bd-courier' ); ?>"><span class="dashicons dashicons-update" aria-hidden="true"></span><?php esc_html_e( 'Update from Pathao', 'bd-courier' ); ?></button>
 					</header>
 					<div class="bdc-sf-account__body">
 						<div class="bdc-score-skeleton" aria-busy="true">

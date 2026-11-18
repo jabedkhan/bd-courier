@@ -71,6 +71,7 @@ class BDC_Checkout {
 				'label'        => self::setting( 'label_name' ),
 				'required'     => true,
 				'class'        => array( 'form-row-wide' ),
+				'placeholder'  => self::setting( 'ph_name' ),
 				'autocomplete' => 'name',
 				'priority'     => 10,
 			),
@@ -79,16 +80,18 @@ class BDC_Checkout {
 				'required'     => true,
 				'type'         => 'tel',
 				'class'        => array( 'form-row-wide' ),
-				'placeholder'  => '01XXXXXXXXX',
+				'placeholder'  => self::setting( 'ph_phone' ),
 				'validate'     => array( 'phone' ),
 				'autocomplete' => 'tel',
 				'priority'     => 20,
 			),
 			'billing_address_1'  => array(
 				'label'        => self::setting( 'label_address' ),
+				'type'         => 'textarea',
 				'required'     => true,
-				'class'        => array( 'form-row-wide' ),
-				'placeholder'  => '',
+				'class'        => array( 'form-row-wide', 'bdc-address' ),
+				'placeholder'  => self::setting( 'ph_address' ),
+				'custom_attributes' => array( 'rows' => 3 ),
 				'autocomplete' => 'street-address',
 				'priority'     => 30,
 			),
@@ -126,7 +129,8 @@ class BDC_Checkout {
 				array(
 					'type'        => 'textarea',
 					'label'       => self::setting( 'label_notes' ),
-					'placeholder' => '',
+					'placeholder' => self::setting( 'ph_notes' ),
+					'custom_attributes' => array( 'rows' => 3 ),
 					'required'    => false,
 					'class'       => array( 'form-row-wide', 'notes' ),
 					'priority'    => 40,
@@ -283,6 +287,9 @@ class BDC_Checkout {
 		}
 		wp_enqueue_style( 'bdc-checkout', BDC_URL . 'assets/css/checkout.css', array(), BDC_VERSION );
 		wp_add_inline_style( 'bdc-checkout', '.bdc-checkout-on{--bdc-co-accent:' . BDC_Brand::accent() . ';}' );
+		if ( '' !== BDC_Settings::get( 'chat', 'messenger' ) ) {
+			wp_enqueue_script( 'bdc-messenger', BDC_URL . 'assets/js/messenger.js', array(), BDC_VERSION, true );
+		}
 		if ( ! is_order_received_page() ) {
 			wp_enqueue_script( 'bdc-checkout', BDC_URL . 'assets/js/checkout.js', array( 'jquery' ), BDC_VERSION, true );
 		}
@@ -337,10 +344,11 @@ class BDC_Checkout {
 		$text  = '' !== $message ? '?text=' . rawurlencode( $message ) : '';
 		$links = array();
 		if ( '' !== $chat['whatsapp'] ) {
-			$links['whatsapp'] = array( 'WhatsApp', 'https://wa.me/' . rawurlencode( $chat['whatsapp'] ) . $text );
+			$links['whatsapp'] = array( 'WhatsApp', 'https://wa.me/' . rawurlencode( $chat['whatsapp'] ) . $text, '' );
 		}
 		if ( '' !== $chat['messenger'] ) {
-			$links['messenger'] = array( 'Messenger', 'https://m.me/' . rawurlencode( $chat['messenger'] ) . $text );
+			$urls               = BDC_Chat::messenger_urls( $chat['messenger'], $message );
+			$links['messenger'] = array( 'Messenger', $urls['mobile'], BDC_Chat::messenger_attrs( $urls, $message ) );
 		}
 		return $links;
 	}
@@ -348,10 +356,11 @@ class BDC_Checkout {
 	private static function help_buttons( $message = '' ) {
 		foreach ( self::help_links( $message ) as $key => $link ) {
 			printf(
-				'<a class="bdc-help__btn bdc-help__btn--%1$s" href="%2$s" target="_blank" rel="noopener noreferrer">%3$s</a>',
+				'<a class="bdc-help__btn bdc-help__btn--%1$s" href="%2$s" target="_blank" rel="noopener noreferrer"%4$s>%3$s</a>',
 				esc_attr( $key ),
 				esc_attr( $link[1] ), // Built here from encoded parts on a fixed https host.
-				esc_html( $link[0] )
+				esc_html( $link[0] ),
+				$link[2] // Escaped in BDC_Chat::messenger_attrs().
 			);
 		}
 	}

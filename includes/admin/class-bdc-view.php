@@ -119,12 +119,11 @@ class BDC_View {
 		}
 
 		return sprintf(
-			'<div class="bdc-parcel__top">%1$s%2$s</div>%3$s%4$s%5$s<div class="bdc-parcel__actions">%6$s</div>',
+			'<div class="bdc-parcel__top">%1$s%2$s</div>%3$s%4$s<div class="bdc-parcel__actions">%5$s</div>',
 			$parts['badge'],
 			$parts['consignment'],
 			$parts['status'],
 			$parts['facts'],
-			$parts['flag'],
 			$parts['actions']
 		);
 	}
@@ -132,7 +131,7 @@ class BDC_View {
 	/**
 	 * The pieces a parcel is shown with, each as ready HTML.
 	 *
-	 * @return array badge, consignment, status, facts, flag, actions. Empty when the courier is unknown.
+	 * @return array badge, consignment, status, facts, actions. Empty when the courier is unknown.
 	 */
 	public static function parcel_parts( WC_Order $order, array $shipment ) {
 		$courier = BDC_Couriers::get( $shipment['courier'] );
@@ -144,15 +143,17 @@ class BDC_View {
 		$track_url = $courier->tracking_url( $shipment );
 		$id_text   = '' !== $shipment['consignment_id'] ? $shipment['consignment_id'] : __( 'ID pending', 'bd-courier' );
 
+		$copy        = '' !== $shipment['consignment_id'] ? ' data-copy="' . esc_attr( $shipment['consignment_id'] ) . '"' : '';
 		$consignment = $panel_url
 			? sprintf(
-				'<a class="bdc-consignment" href="%s" target="_blank" rel="noopener" title="%s">%s</a>',
+				'<a class="bdc-consignment" href="%s" target="_blank" rel="noopener" title="%s"%s>%s</a>',
 				esc_url( $panel_url ),
 				/* translators: %s: courier name */
 				esc_attr( sprintf( __( 'Open in the %s merchant panel', 'bd-courier' ), $courier->label() ) ),
+				$copy,
 				esc_html( $id_text )
 			)
-			: '<span class="bdc-consignment">' . esc_html( $id_text ) . '</span>';
+			: '<span class="bdc-consignment"' . $copy . '>' . esc_html( $id_text ) . '</span>';
 
 		$status = '' !== $shipment['courier_status'] ? $courier->status_label( $shipment['courier_status'] ) : BDC_Statuses::label( $shipment['status'] );
 
@@ -164,25 +165,6 @@ class BDC_View {
 		if ( '' !== (string) $shipment['delivery_fee'] ) {
 			/* translators: %s: amount */
 			$facts[] = sprintf( __( 'Fee %s', 'bd-courier' ), self::money( $shipment['delivery_fee'] ) );
-		}
-
-		$flag = '';
-		if ( ! empty( $shipment['unsynced'] ) ) {
-			$flag = sprintf(
-				'<div class="bdc-flag"><span class="bdc-flag__text"><span class="dashicons dashicons-warning" aria-hidden="true"></span>%s</span><span class="bdc-flag__actions">%s<button type="button" class="bdc-link bdc-synced" data-order="%d">%s</button></span></div>',
-				/* translators: %s: courier name */
-				esc_html( sprintf( __( 'Edited here, not on %s yet', 'bd-courier' ), $courier->label() ) ),
-				$panel_url
-					? sprintf(
-						'<a class="bdc-link" href="%s" target="_blank" rel="noopener">%s</a>',
-						esc_url( $panel_url ),
-						/* translators: %s: courier name */
-						esc_html( sprintf( __( 'Open %s', 'bd-courier' ), $courier->label() ) )
-					)
-					: '',
-				$order->get_id(),
-				esc_html__( 'Mark as updated', 'bd-courier' )
-			);
 		}
 
 		$id      = $order->get_id();
@@ -207,7 +189,6 @@ class BDC_View {
 				esc_html( $status )
 			),
 			'facts'       => $facts ? '<div class="bdc-parcel__facts">' . esc_html( implode( ' · ', $facts ) ) . '</div>' : '',
-			'flag'        => $flag,
 			'actions'     => $actions,
 		);
 	}
