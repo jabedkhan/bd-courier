@@ -49,6 +49,7 @@ class BDC_Settings {
 				'whatsapp'  => '',
 				'messenger' => '',
 				'message'   => '',
+				'message_page' => '',
 			),
 			'brand'     => array(
 				'name'   => '',

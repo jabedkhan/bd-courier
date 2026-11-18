@@ -128,6 +128,7 @@ class BDC_Settings_Page {
 					'whatsapp'  => BDC_Chat::clean_whatsapp( $text( 'whatsapp' ) ),
 					'messenger' => BDC_Chat::clean_messenger( $text( 'messenger' ) ),
 					'message'   => $message,
+					'message_page' => isset( $posted['message_page'] ) && is_scalar( $posted['message_page'] ) ? trim( sanitize_textarea_field( (string) $posted['message_page'] ) ) : '',
 				)
 			);
 		} elseif ( 'branding' === $tab ) {
@@ -632,12 +633,12 @@ class BDC_Settings_Page {
 	private static function chat_tab() {
 		$chat = BDC_Settings::section( 'chat' );
 		?>
-		<?php self::panel_open( __( 'Chat buttons on product pages', 'bd-courier' ), __( 'A small chat button in the bottom-right corner of every product page. Customers pick Messenger or WhatsApp, and their message already says which product they are looking at.', 'bd-courier' ), '', '', 'grid' ); ?>
+		<?php self::panel_open( __( 'Chat buttons', 'bd-courier' ), __( 'A small chat button in the bottom-right corner of every page of your shop except checkout. Customers pick Messenger or WhatsApp, and their message already says which product or page they are looking at.', 'bd-courier' ), '', '', 'grid' ); ?>
 
 			<?php self::row_open( __( 'Show chat buttons', 'bd-courier' ), 'bdc-chat-enabled', true ); ?>
 				<label class="bdc-check">
 					<input type="checkbox" id="bdc-chat-enabled" name="bdc[enabled]" value="yes" <?php checked( 'yes', $chat['enabled'] ); ?>>
-					<?php esc_html_e( 'Show the chat button on product pages', 'bd-courier' ); ?>
+					<?php esc_html_e( 'Show the chat button on every page except checkout', 'bd-courier' ); ?>
 				</label>
 			<?php self::row_close( __( 'Only the channels you fill in below are shown.', 'bd-courier' ) ); ?>
 
@@ -649,9 +650,13 @@ class BDC_Settings_Page {
 				<input type="text" id="bdc-chat-messenger" name="bdc[messenger]" value="<?php echo esc_attr( $chat['messenger'] ); ?>" placeholder="yourshop" autocomplete="off">
 			<?php self::row_close( __( 'Your Facebook Page username, as in facebook.com/yourshop. You can also paste the full Page or m.me link.', 'bd-courier' ) ); ?>
 
-			<?php self::row_open( __( 'Message', 'bd-courier' ), 'bdc-chat-message', true ); ?>
+			<?php self::row_open( __( 'Message on product pages', 'bd-courier' ), 'bdc-chat-message', true ); ?>
 				<textarea id="bdc-chat-message" name="bdc[message]" rows="3" class="bdc-note bdc-wide" placeholder="<?php echo esc_attr( BDC_Chat::default_message() ); ?>"><?php echo esc_textarea( $chat['message'] ); ?></textarea>
 			<?php self::row_close( __( 'The message customers start with. {product} becomes the product name and {link} the page link. Leave empty to use the text shown in grey.', 'bd-courier' ) ); ?>
+
+			<?php self::row_open( __( 'Message on other pages', 'bd-courier' ), 'bdc-chat-message-page', true ); ?>
+				<textarea id="bdc-chat-message-page" name="bdc[message_page]" rows="3" class="bdc-note bdc-wide" placeholder="<?php echo esc_attr( BDC_Chat::default_page_message() ); ?>"><?php echo esc_textarea( $chat['message_page'] ); ?></textarea>
+			<?php self::row_close( __( 'Used on the home page, shop, categories and other pages. {product} becomes the page title and {link} the page link.', 'bd-courier' ) ); ?>
 
 		<?php self::panel_close(); ?>
 

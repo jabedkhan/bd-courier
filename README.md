@@ -175,9 +175,9 @@ Neither Pathao nor Steadfast lets other software change a parcel once it is book
 
 Every label, area name and charge can be changed. The mobile number must be a valid Bangladeshi number (01XXXXXXXXX). Country is set to Bangladesh, email is not asked, and the optional order notes box can be kept or removed. The chosen area is saved on the order and shown under the billing address. No WooCommerce shipping zones are needed. Works with the classic WooCommerce checkout; switch off other checkout-field plugins when you turn it on.
 
-### Chat buttons on product pages
+### Chat buttons
 
-**BD Courier → Settings → Chat buttons** adds one floating chat button to the bottom-right corner of every product page. Customers tap it and choose **Messenger** or **WhatsApp**. Their message is already filled in with the product name and its link, so you know straight away which product they mean.
+**BD Courier → Settings → Chat buttons** adds one floating chat button to the bottom-right corner of every page of the shop except checkout. Customers tap it and choose **Messenger** or **WhatsApp**. Their message is already filled in with the product name (or the page title) and its link, so you know straight away what they mean.
 
 - WhatsApp: enter your number with the country code (a local `01…` number is changed to `8801…` for you).
 - Messenger: enter your Facebook Page username, or paste the Page or m.me link.

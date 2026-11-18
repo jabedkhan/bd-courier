@@ -12,9 +12,9 @@ class BDC_Chat {
 		add_action( 'wp_footer', array( __CLASS__, 'render' ) );
 	}
 
-	/** Shown only on single product pages, when switched on and at least one channel is filled in. */
+	/** Shown on every shop page except checkout (and the thank-you page), when switched on and a channel is filled in. */
 	private static function should_show() {
-		if ( is_admin() || ! function_exists( 'is_product' ) || ! is_product() ) {
+		if ( is_admin() || wp_doing_ajax() || ( function_exists( 'is_checkout' ) && is_checkout() ) ) {
 			return false;
 		}
 		$chat = BDC_Settings::section( 'chat' );
@@ -32,6 +32,11 @@ class BDC_Chat {
 
 	public static function default_message() {
 		return __( "Hi! I'm interested in this product: {product}\n{link}", 'bd-courier' );
+	}
+
+	/** Message on pages that are not a product: {product} becomes the page title. */
+	public static function default_page_message() {
+		return __( "Hi! I have a question about: {product}\n{link}", 'bd-courier' );
 	}
 
 	/** WhatsApp wants the full number with country code, digits only. A local 01… number gets 880 in front. */
@@ -52,20 +57,50 @@ class BDC_Chat {
 		return preg_replace( '/[^A-Za-z0-9.\-]/', '', $value );
 	}
 
-	/** The message with this page's product name and link filled in. */
+	/** The message with this page's product (or page) name and link filled in. */
 	private static function message() {
-		$chat     = BDC_Settings::section( 'chat' );
-		$template = '' !== $chat['message'] ? $chat['message'] : self::default_message();
-		$product  = wp_strip_all_tags( get_the_title() );
-		$link     = get_permalink();
+		$chat       = BDC_Settings::section( 'chat' );
+		$on_product = function_exists( 'is_product' ) && is_product();
+
+		if ( $on_product ) {
+			$template = '' !== $chat['message'] ? $chat['message'] : self::default_message();
+			$name     = wp_strip_all_tags( get_the_title() );
+			$link     = get_permalink();
+		} else {
+			$template = '' !== $chat['message_page'] ? $chat['message_page'] : self::default_page_message();
+			$name     = self::page_title();
+			$link     = self::current_url();
+		}
 
 		return strtr(
 			$template,
 			array(
-				'{product}' => $product,
-				'{link}'    => $link,
+				'{product}' => $name,
+				'{link}'    => esc_url_raw( $link ),
 			)
 		);
+	}
+
+	/** A clean page title: "Shop", "Cart" or a category name, without the site name after it. */
+	private static function page_title() {
+		$site  = wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES );
+		$title = wp_specialchars_decode( wp_strip_all_tags( wp_get_document_title() ), ENT_QUOTES );
+		$title = html_entity_decode( $title, ENT_QUOTES, 'UTF-8' );
+		if ( '' !== $site && $title !== $site ) {
+			$title = preg_replace( '/\s*[\-–—|·]\s*' . preg_quote( $site, '/' ) . '\s*$/u', '', $title );
+		}
+		return '' !== trim( $title ) ? trim( $title ) : $site;
+	}
+
+	/** This page's address: the site's own scheme and host, plus the path being viewed. */
+	private static function current_url() {
+		if ( is_singular() ) {
+			return get_permalink();
+		}
+		$home = wp_parse_url( home_url() );
+		$path = isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '/'; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
+		$path = '/' . ltrim( (string) wp_parse_url( $path, PHP_URL_PATH ), '/' );
+		return ( $home['scheme'] ?? 'https' ) . '://' . ( $home['host'] ?? '' ) . ( isset( $home['port'] ) ? ':' . $home['port'] : '' ) . $path;
 	}
 
 	public static function render() {
