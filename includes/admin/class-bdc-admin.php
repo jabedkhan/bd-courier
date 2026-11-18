@@ -16,12 +16,23 @@ class BDC_Admin {
 		add_action( 'add_meta_boxes', array( __CLASS__, 'meta_box' ) );
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'assets' ) );
 		add_filter( 'admin_footer_text', array( __CLASS__, 'footer_credit' ), 99 );
+		add_filter( 'update_footer', array( __CLASS__, 'footer_version' ), 99 );
+	}
+
+	/** True on BD Courier's own pages (Shipments, Reports, Settings). */
+	private static function is_our_page() {
+		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
+		return 0 === strpos( $page, 'bd-courier' );
+	}
+
+	/** No WordPress version or update link at the bottom right of our pages. */
+	public static function footer_version( $text ) {
+		return self::is_our_page() ? '' : $text;
 	}
 
 	/** Credit line at the bottom of BD Courier's own pages. */
 	public static function footer_credit( $text ) {
-		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
-		if ( 0 !== strpos( $page, 'bd-courier' ) && 0 !== strpos( $page, 'bdc-' ) ) {
+		if ( ! self::is_our_page() ) {
 			return $text;
 		}
 		return sprintf(

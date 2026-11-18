@@ -26,6 +26,27 @@ class BDC_Reports {
 		return add_query_arg( array_merge( array( 'page' => self::SLUG ), $args ), admin_url( 'admin.php' ) );
 	}
 
+	/* ---- Courier tab ---- */
+
+	/** Couriers with a report tab, Steadfast first. */
+	private static function tabs() {
+		return self::ordered( BDC_Couriers::shown() );
+	}
+
+	/** The courier whose report is open: the chosen tab, or the first one. */
+	private static function current() {
+		$tabs   = self::tabs();
+		$chosen = isset( $_GET['courier'] ) ? sanitize_key( wp_unslash( $_GET['courier'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
+		return isset( $tabs[ $chosen ] ) ? $chosen : (string) key( $tabs );
+	}
+
+	/** Only the open courier: one report at a time. */
+	private static function couriers() {
+		$tabs    = self::tabs();
+		$current = self::current();
+		return isset( $tabs[ $current ] ) ? array( $current => $tabs[ $current ] ) : array();
+	}
+
 	/* ---- Period ---- */
 
 	public static function presets() {
@@ -131,7 +152,7 @@ class BDC_Reports {
 				)
 			);
 
-			$shown = BDC_Couriers::shown();
+			$shown = self::couriers();
 			foreach ( $orders as $order ) {
 				$shipment = BDC_Shipment::get( $order );
 				if ( ! $shipment || ! isset( $shown[ $shipment['courier'] ] ) ) {
@@ -169,7 +190,7 @@ class BDC_Reports {
 			'total'    => self::blank(),
 			'days'     => array(),
 		);
-		foreach ( array_keys( BDC_Couriers::shown() ) as $id ) {
+		foreach ( array_keys( self::couriers() ) as $id ) {
 			$report['couriers'][ $id ] = self::blank();
 		}
 
@@ -177,7 +198,7 @@ class BDC_Reports {
 		$day  = new DateTimeImmutable( $period['from'], $zone );
 		$last = new DateTimeImmutable( $period['to'], $zone );
 		while ( $day <= $last && count( $report['days'] ) < 366 ) {
-			$report['days'][ $day->format( 'Y-m-d' ) ] = array_fill_keys( array_keys( BDC_Couriers::shown() ), 0 );
+			$report['days'][ $day->format( 'Y-m-d' ) ] = array_fill_keys( array_keys( self::couriers() ), 0 );
 			$day                                      = $day->modify( '+1 day' );
 		}
 
@@ -432,7 +453,9 @@ class BDC_Reports {
 	public static function render() {
 		$period   = self::period();
 		$report   = self::summarise( self::parcels( $period ), $period );
-		$couriers = self::ordered( BDC_Couriers::shown() );
+		$couriers = self::couriers();
+		$current  = self::current();
+		$tabs     = self::tabs();
 		$total    = $report['total'];
 		$rate     = self::success_rate( $total );
 		$format   = get_option( 'date_format' );
@@ -441,6 +464,9 @@ class BDC_Reports {
 			'from'  => $period['from'],
 			'to'    => $period['to'],
 		);
+		if ( count( $tabs ) > 1 ) {
+			$query['courier'] = $current;
+		}
 		?>
 		<div class="wrap bdc-page bdc-reports">
 			<?php echo BDC_View::header( 'reports' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
@@ -454,12 +480,28 @@ class BDC_Reports {
 			</div>
 			<hr class="wp-header-end">
 
+			<?php if ( count( $tabs ) > 1 ) : ?>
+				<nav class="bdc-tabs" aria-label="<?php esc_attr_e( 'Courier report', 'bd-courier' ); ?>">
+					<?php foreach ( $tabs as $id => $tab ) : ?>
+						<a class="<?php echo $id === $current ? 'is-current' : ''; ?>" href="<?php echo esc_url( self::url( array_merge( $query, array( 'courier' => $id ) ) ) ); ?>" <?php echo $id === $current ? 'aria-current="page"' : ''; ?>>
+							<?php
+							/* translators: %s: courier name */
+							echo esc_html( sprintf( __( '%s report', 'bd-courier' ), $tab->label() ) );
+							?>
+						</a>
+					<?php endforeach; ?>
+				</nav>
+			<?php endif; ?>
+
 			<form method="get" class="bdc-reports__filters">
 				<input type="hidden" name="page" value="<?php echo esc_attr( self::SLUG ); ?>">
+				<?php if ( isset( $query['courier'] ) ) : ?>
+					<input type="hidden" name="courier" value="<?php echo esc_attr( $current ); ?>">
+				<?php endif; ?>
 				<input type="hidden" name="range" value="custom">
 				<span class="bdc-segment" role="group" aria-label="<?php esc_attr_e( 'Period', 'bd-courier' ); ?>">
 					<?php foreach ( self::presets() as $key => $label ) : ?>
-						<a class="<?php echo (string) $key === $period['range'] ? 'is-current' : ''; ?>" href="<?php echo esc_url( self::url( array( 'range' => $key ) ) ); ?>"><?php echo esc_html( $label ); ?></a>
+						<a class="<?php echo (string) $key === $period['range'] ? 'is-current' : ''; ?>" href="<?php echo esc_url( self::url( array_merge( array_diff_key( $query, array_flip( array( 'from', 'to' ) ) ), array( 'range' => $key ) ) ) ); ?>"><?php echo esc_html( $label ); ?></a>
 					<?php endforeach; ?>
 				</span>
 				<span class="bdc-reports__dates">
@@ -490,7 +532,7 @@ class BDC_Reports {
 
 			<?php
 			$steadfast = BDC_Couriers::get( 'steadfast' );
-			if ( $steadfast && $steadfast->is_active() ) :
+			if ( 'steadfast' === $current && $steadfast && $steadfast->is_active() ) :
 				?>
 				<section class="bdc-sf-account" aria-live="polite">
 					<header class="bdc-sf-account__head">
@@ -511,7 +553,7 @@ class BDC_Reports {
 
 			<?php
 			$pathao = BDC_Couriers::get( 'pathao' );
-			if ( $pathao && $pathao->is_active() ) :
+			if ( 'pathao' === $current && $pathao && $pathao->is_active() ) :
 				?>
 				<section class="bdc-sf-account bdc-pathao-account" data-courier="pathao" aria-live="polite">
 					<header class="bdc-sf-account__head">
@@ -537,7 +579,7 @@ class BDC_Reports {
 					<p>
 						<?php
 						/* translators: %s: courier names, e.g. "Steadfast" or "Steadfast or Pathao" */
-						echo esc_html( sprintf( __( 'Try a longer period, or send an order with %s from the Orders screen.', 'bd-courier' ), BDC_Couriers::names() ) );
+						echo esc_html( sprintf( __( 'Try a longer period, or send an order with %s from the Orders screen.', 'bd-courier' ), isset( $tabs[ $current ] ) ? $tabs[ $current ]->label() : BDC_Couriers::names() ) );
 						?>
 					</p>
 				</div>
@@ -550,15 +592,6 @@ class BDC_Reports {
 					self::stat( 'money-alt', __( 'Cash collected', 'bd-courier' ), BDC_View::money( $total['cod_collected'] ), __( 'from delivered parcels', 'bd-courier' ), 'good' );
 					self::stat( 'clock', __( 'Cash still out', 'bd-courier' ), BDC_View::money( $total['cod_out'] ), __( 'parcels on the way or on hold', 'bd-courier' ), 'warn' );
 					self::stat( 'tag', __( 'Delivery fees', 'bd-courier' ), BDC_View::money( $total['fees'] ), __( 'as reported by the couriers', 'bd-courier' ) );
-					?>
-				</div>
-
-				<h2><?php esc_html_e( 'By courier', 'bd-courier' ); ?></h2>
-				<div class="bdc-courier-cards">
-					<?php
-					foreach ( $couriers as $id => $courier ) {
-						self::courier_card( $courier, $report['couriers'][ $id ] );
-					}
 					?>
 				</div>
 
@@ -594,7 +627,7 @@ class BDC_Reports {
 					<table class="bdc-reports__table bdc-versus <?php echo count( $sides ) > 1 ? "" : "bdc-versus--single"; ?>">
 						<thead>
 							<tr>
-								<th class="bdc-versus__metric"><?php esc_html_e( 'Compared', 'bd-courier' ); ?></th>
+								<th class="bdc-versus__metric"><?php echo esc_html( count( $sides ) > 1 ? __( 'Compared', 'bd-courier' ) : __( 'Details', 'bd-courier' ) ); ?></th>
 									<?php foreach ( $sides as $side ) : ?>
 										<th class="bdc-versus__side"><?php echo BDC_View::badge( $side ); // phpcs:ignore WordPress.Security.EscapeOutput ?></th>
 									<?php endforeach; ?>
@@ -652,77 +685,6 @@ class BDC_Reports {
 			esc_html( $value ),
 			$hint ? '<span class="bdc-stat__hint">' . esc_html( $hint ) . '</span>' : ''
 		);
-	}
-
-	/** One courier at a glance: volume, success, where its parcels are, and its cash. */
-	private static function courier_card( BDC_Courier $courier, array $sum ) {
-		$rate  = self::success_rate( $sum );
-		$parts = array(
-			'delivered'  => array( __( 'Delivered', 'bd-courier' ), $sum['delivered'] ),
-			'partial'    => array( __( 'Partial', 'bd-courier' ), $sum['partial'] ),
-			'on_the_way' => array( __( 'On the way', 'bd-courier' ), $sum['on_the_way'] ),
-			'hold'       => array( __( 'On hold', 'bd-courier' ), $sum['hold'] ),
-			'returned'   => array( __( 'Returned', 'bd-courier' ), $sum['returned'] ),
-		);
-		?>
-		<section class="bdc-courier-card bdc-courier-card--<?php echo esc_attr( $courier->id() ); ?>">
-			<header class="bdc-courier-card__head">
-				<?php echo BDC_View::badge( $courier ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
-				<span class="bdc-courier-card__count">
-					<?php
-					/* translators: %s: number of parcels */
-					echo esc_html( sprintf( _n( '%s parcel', '%s parcels', $sum['sent'], 'bd-courier' ), number_format_i18n( $sum['sent'] ) ) );
-					?>
-				</span>
-			</header>
-
-			<?php if ( ! $sum['sent'] ) : ?>
-				<p class="bdc-courier-card__empty">
-					<?php
-					/* translators: %s: courier name */
-					echo esc_html( sprintf( __( 'Nothing sent with %s in this period.', 'bd-courier' ), $courier->label() ) );
-					?>
-				</p>
-			<?php else : ?>
-				<div class="bdc-courier-card__rate">
-					<strong><?php echo esc_html( null === $rate ? '—' : $rate . '%' ); ?></strong>
-					<span><?php echo null === $rate ? esc_html__( 'No parcel has finished yet', 'bd-courier' ) : esc_html__( 'delivery success', 'bd-courier' ); ?></span>
-				</div>
-
-				<div class="bdc-split" role="img" aria-label="<?php esc_attr_e( 'Where the parcels are now', 'bd-courier' ); ?>">
-					<?php foreach ( $parts as $key => $part ) : ?>
-						<?php if ( $part[1] ) : ?>
-							<i class="bdc-split__part bdc-split__part--<?php echo esc_attr( $key ); ?>" style="flex-grow: <?php echo esc_attr( $part[1] ); ?>;" title="<?php echo esc_attr( $part[0] . ': ' . $part[1] ); ?>"></i>
-						<?php endif; ?>
-					<?php endforeach; ?>
-				</div>
-				<ul class="bdc-split__legend">
-					<?php foreach ( $parts as $key => $part ) : ?>
-						<li class="<?php echo $part[1] ? '' : 'is-zero'; ?>">
-							<i class="bdc-split__part--<?php echo esc_attr( $key ); ?>"></i>
-							<?php echo esc_html( $part[0] ); ?>
-							<strong><?php echo esc_html( number_format_i18n( $part[1] ) ); ?></strong>
-						</li>
-					<?php endforeach; ?>
-				</ul>
-
-				<dl class="bdc-courier-card__cash">
-					<div>
-						<dt><?php esc_html_e( 'Cash collected', 'bd-courier' ); ?></dt>
-						<dd><?php echo esc_html( BDC_View::money( $sum['cod_collected'] ) ); ?></dd>
-					</div>
-					<div>
-						<dt><?php esc_html_e( 'Cash still out', 'bd-courier' ); ?></dt>
-						<dd><?php echo esc_html( BDC_View::money( $sum['cod_out'] ) ); ?></dd>
-					</div>
-					<div>
-						<dt><?php esc_html_e( 'Delivery fees', 'bd-courier' ); ?></dt>
-						<dd><?php echo esc_html( BDC_View::money( $sum['fees'] ) ); ?></dd>
-					</div>
-				</dl>
-			<?php endif; ?>
-		</section>
-		<?php
 	}
 
 	/** Parcels sent per day, one bar per courier. */
@@ -791,7 +753,7 @@ class BDC_Reports {
 
 		nocache_headers();
 		header( 'Content-Type: text/csv; charset=utf-8' );
-		header( 'Content-Disposition: attachment; filename="bd-courier-' . $period['from'] . '-to-' . $period['to'] . '.csv"' );
+		header( 'Content-Disposition: attachment; filename="bd-courier-' . self::current() . '-' . $period['from'] . '-to-' . $period['to'] . '.csv"' );
 
 		$out = fopen( 'php://output', 'w' );
 		fwrite( $out, "\xEF\xBB\xBF" ); // So Excel reads Bangla and the ৳ sign correctly.
