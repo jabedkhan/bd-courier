@@ -1208,3 +1208,124 @@
 	opacity: 0;
 	transform: translate(-50%, 8px);
 }
+
+/* ---- Phones: compact order summary and payment box ---- */
+@media (max-width: 600px) {
+	.bdc-checkout-on #order_review {
+		padding: 12px 14px;
+	}
+
+	/* Each line is one row with a single divider, so the lines never go out of step. */
+	.bdc-checkout-on #order_review table.shop_table,
+	.bdc-checkout-on #order_review table.shop_table :is(thead, tbody, tfoot) {
+		display: block;
+		width: 100%;
+		margin: 0;
+	}
+
+	.bdc-checkout-on #order_review table.shop_table tr {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 12px;
+		padding: 10px 0;
+		border-bottom: 1px solid var(--bdc-co-line);
+	}
+
+	.bdc-checkout-on #order_review table.shop_table tr.order-total {
+		align-items: center;
+		border-bottom: 0;
+	}
+
+	.bdc-checkout-on #order_review table.shop_table :is(th, td),
+	.bdc-checkout-on #order_review table.shop_table :is(th, td):is(:first-child, :last-child) {
+		display: block;
+		padding: 0;
+		border: 0;
+		font-size: 14px;
+		line-height: 1.45;
+	}
+
+	.bdc-checkout-on #order_review table.shop_table :is(th, td):first-child {
+		flex: 1 1 auto;
+		min-width: 0;
+	}
+
+	.bdc-checkout-on #order_review table.shop_table :is(th, td):last-child {
+		flex: 0 0 auto;
+		max-width: 55%;
+		text-align: right;
+		white-space: nowrap;
+	}
+
+	.bdc-checkout-on #order_review table.shop_table thead th {
+		font-size: 11.5px;
+	}
+
+	.bdc-checkout-on #order_review table.shop_table .order-total :is(th, td) {
+		font-size: 17px;
+	}
+
+	/* Delivery line: area name small on top, charge underneath. */
+	.bdc-checkout-on #order_review .woocommerce-shipping-totals td {
+		white-space: normal;
+	}
+
+	.bdc-checkout-on #order_review #shipping_method li label {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-end;
+		gap: 1px;
+		color: var(--bdc-co-muted);
+		font-size: 12.5px;
+		font-weight: 500;
+		line-height: 1.35;
+	}
+
+	.bdc-checkout-on #order_review #shipping_method li label .amount {
+		color: var(--bdc-co-ink);
+		font-size: 14px;
+		font-weight: 600;
+	}
+
+	/* Payment: less padding everywhere. */
+	.bdc-checkout-on #payment,
+	.bdc-checkout-on #payment:not(.brx-payment-options__container) {
+		margin-top: 12px;
+		padding: 0;
+	}
+
+	.bdc-checkout-on #payment ul.payment_methods {
+		margin: 0;
+		padding: 12px;
+	}
+
+	.bdc-checkout-on #payment ul.payment_methods li {
+		margin: 0;
+	}
+
+	.bdc-checkout-on #payment div.payment_box {
+		margin: 8px 0 0;
+		padding: 10px 12px;
+		font-size: 13.5px;
+	}
+
+	.bdc-checkout-on #payment div.payment_box p {
+		margin: 0;
+	}
+
+	.bdc-checkout-on #payment .place-order {
+		padding: 12px;
+	}
+
+	.bdc-checkout-on #payment .woocommerce-privacy-policy-text,
+	.bdc-checkout-on #payment .woocommerce-privacy-policy-text p {
+		margin: 0 0 10px;
+		font-size: 12px;
+	}
+
+	.bdc-checkout-on #place_order {
+		min-height: 50px;
+		font-size: 16px;
+	}
+}

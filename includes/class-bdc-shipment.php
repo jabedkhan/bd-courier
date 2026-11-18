@@ -118,12 +118,18 @@ class BDC_Shipment {
 	 */
 	public static function maybe_upgrade() {
 		$version = (int) get_option( 'bdc_data_version', 0 );
-		if ( $version >= 4 ) {
+		if ( $version >= 5 ) {
 			return;
 		}
 		if ( $version >= 3 ) {
-			BDC_Statuses::merge_delivered();
-			update_option( 'bdc_data_version', 4, false );
+			if ( $version < 4 ) {
+				BDC_Statuses::merge_delivered();
+			}
+			// The name placeholder no longer starts with "যেমন:".
+			if ( 'যেমন: মোঃ রহিম উদ্দিন' === BDC_Settings::get( 'checkout', 'ph_name' ) ) {
+				BDC_Settings::update_section( 'checkout', array( 'ph_name' => 'মোঃ রহিম উদ্দিন' ) );
+			}
+			update_option( 'bdc_data_version', 5, false );
 			return;
 		}
 
@@ -148,7 +154,7 @@ class BDC_Shipment {
 		}
 
 		BDC_Statuses::merge_delivered();
-		update_option( 'bdc_data_version', 4, false );
+		update_option( 'bdc_data_version', 5, false );
 	}
 
 	/**
