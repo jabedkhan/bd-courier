@@ -75,9 +75,25 @@ class BDC_Chat {
 		);
 	}
 
-	/** Extra attributes for a Messenger link: the computer address and the message to copy. */
+	/**
+	 * Extra attributes for a Messenger link: the computer address, the message to
+	 * copy, and the Page name and ID used to open the Messenger app from inside
+	 * the Facebook app's browser.
+	 */
 	public static function messenger_attrs( array $urls, $message = '' ) {
-		return sprintf( ' data-bdc-desktop="%s" data-bdc-text="%s"', esc_url( $urls['desktop'] ), esc_attr( $message ) );
+		$chat = BDC_Settings::section( 'chat' );
+		$page = self::clean_messenger( $chat['messenger'] );
+		$id   = preg_replace( '/\D+/', '', (string) ( $chat['messenger_id'] ?? '' ) );
+		if ( '' === $id && ctype_digit( $page ) ) {
+			$id = $page;
+		}
+		return sprintf(
+			' data-bdc-desktop="%s" data-bdc-text="%s" data-bdc-page="%s" data-bdc-page-id="%s"',
+			esc_url( $urls['desktop'] ),
+			esc_attr( $message ),
+			esc_attr( $page ),
+			esc_attr( $id )
+		);
 	}
 
 	/** The message with this page's product (or page) name and link filled in. */

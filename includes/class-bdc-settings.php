@@ -52,6 +52,7 @@ class BDC_Settings {
 				'enabled'   => 'no',
 				'whatsapp'  => '',
 				'messenger' => '',
+				'messenger_id' => '',
 				'message'   => '',
 				'message_page' => '',
 			),

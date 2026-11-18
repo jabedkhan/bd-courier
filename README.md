@@ -181,6 +181,7 @@ Every label, area name and charge can be changed. The mobile number must be a va
 
 - WhatsApp: enter your number with the country code (a local `01…` number is changed to `8801…` for you).
 - Messenger: enter your Facebook Page username, or paste the Page or m.me link.
+- Facebook Page ID (optional): customers browsing inside the Facebook app on iPhone go straight to the Messenger app only when this is filled in. Android does this without it. Find it on your Page under About → Page transparency.
 - The message text can be changed; `{product}` becomes the product name and `{link}` the page link.
 
 WhatsApp always fills in the message. Messenger fills it in on most devices; where Facebook does not, the chat still opens with your Page.

@@ -127,6 +127,7 @@ class BDC_Settings_Page {
 					'enabled'   => isset( $posted['enabled'] ) ? 'yes' : 'no',
 					'whatsapp'  => BDC_Chat::clean_whatsapp( $text( 'whatsapp' ) ),
 					'messenger' => BDC_Chat::clean_messenger( $text( 'messenger' ) ),
+					'messenger_id' => preg_replace( '/\D+/', '', $text( 'messenger_id' ) ),
 					'message'   => $message,
 					'message_page' => isset( $posted['message_page'] ) && is_scalar( $posted['message_page'] ) ? trim( sanitize_textarea_field( (string) $posted['message_page'] ) ) : '',
 				)
@@ -664,6 +665,10 @@ class BDC_Settings_Page {
 			<?php self::row_open( 'Messenger', 'bdc-chat-messenger' ); ?>
 				<input type="text" id="bdc-chat-messenger" name="bdc[messenger]" value="<?php echo esc_attr( $chat['messenger'] ); ?>" placeholder="yourshop" autocomplete="off">
 			<?php self::row_close( __( 'Your Facebook Page username, as in facebook.com/yourshop. You can also paste the full Page or m.me link.', 'bd-courier' ) ); ?>
+
+			<?php self::row_open( __( 'Facebook Page ID', 'bd-courier' ), 'bdc-chat-messenger-id' ); ?>
+				<input type="text" id="bdc-chat-messenger-id" name="bdc[messenger_id]" value="<?php echo esc_attr( $chat['messenger_id'] ); ?>" placeholder="1234567890" inputmode="numeric" autocomplete="off">
+			<?php self::row_close( __( 'Optional, but needed on iPhone: lets customers who are browsing inside the Facebook app jump straight to the Messenger app. Find it on your Facebook Page under About → Page transparency → Page ID.', 'bd-courier' ) ); ?>
 
 			<?php self::row_open( __( 'Message on product pages', 'bd-courier' ), 'bdc-chat-message', true ); ?>
 				<textarea id="bdc-chat-message" name="bdc[message]" rows="3" class="bdc-note bdc-wide" placeholder="<?php echo esc_attr( BDC_Chat::default_message() ); ?>"><?php echo esc_textarea( $chat['message'] ); ?></textarea>
